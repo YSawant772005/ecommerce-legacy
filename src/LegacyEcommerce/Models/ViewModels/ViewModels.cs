@@ -98,6 +98,7 @@ namespace LegacyEcommerce.Models.ViewModels
     {
         public Product Product { get; set; }
         public int Qty { get; set; }
+        public string Variant { get; set; }
         public decimal LineTotal { get { return Product.Price * Qty; } }
     }
 

@@ -9,6 +9,7 @@ namespace LegacyEcommerce.Infrastructure
     {
         public int ProductId { get; set; }
         public int Qty { get; set; }
+        public string Variant { get; set; }
     }
 
     public class CouponResult
@@ -41,18 +42,27 @@ namespace LegacyEcommerce.Infrastructure
             return Lines(session).Sum(l => l.Qty);
         }
 
-        public static void Add(HttpSessionStateBase session, int productId, int qty = 1)
+        public static void Add(HttpSessionStateBase session, int productId, int qty = 1, string variant = null)
         {
             if (qty < 1) qty = 1;
             var lines = Lines(session);
             var line = lines.FirstOrDefault(l => l.ProductId == productId);
             if (line == null)
             {
-                lines.Add(new CartLine { ProductId = productId, Qty = qty });
+                lines.Add(new CartLine
+                {
+                    ProductId = productId,
+                    Qty = qty,
+                    Variant = string.IsNullOrWhiteSpace(variant) || variant == "null" ? null : variant.Trim()
+                });
             }
             else
             {
                 line.Qty = Math.Min(10, line.Qty + qty);
+                if (!string.IsNullOrWhiteSpace(variant) && variant != "null")
+                {
+                    line.Variant = variant.Trim();
+                }
             }
         }
 

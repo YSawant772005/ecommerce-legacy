@@ -42,7 +42,7 @@ namespace LegacyEcommerce.Controllers
             {
                 Product p;
                 if (!byId.TryGetValue(line.ProductId, out p)) continue;
-                model.Lines.Add(new CartLineView { Product = p, Qty = line.Qty });
+                model.Lines.Add(new CartLineView { Product = p, Qty = line.Qty, Variant = line.Variant });
             }
 
             model.Totals = Pricing.Compute(model.Lines, SessionCart.GetCoupon(Session));
@@ -73,7 +73,7 @@ namespace LegacyEcommerce.Controllers
         }
 
         [HttpPost]
-        public ActionResult Add(int id, int qty = 1)
+        public ActionResult Add(int id, int qty = 1, string variant = null)
         {
             var product = db.Products.Find(id);
             if (product == null)
@@ -85,7 +85,7 @@ namespace LegacyEcommerce.Controllers
                 return Json(new { ok = false, error = "Sorry, this item is out of stock." });
             }
 
-            SessionCart.Add(Session, id, qty);
+            SessionCart.Add(Session, id, qty, variant);
             Persist();
             return Json(new
             {

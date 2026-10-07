@@ -36,7 +36,7 @@ namespace LegacyEcommerce.Controllers
             {
                 Product p;
                 if (!byId.TryGetValue(line.ProductId, out p)) continue;
-                model.Lines.Add(new CartLineView { Product = p, Qty = line.Qty });
+                model.Lines.Add(new CartLineView { Product = p, Qty = line.Qty, Variant = line.Variant });
             }
             model.Totals = Pricing.Compute(model.Lines, SessionCart.GetCoupon(Session));
             return model;
@@ -328,7 +328,7 @@ namespace LegacyEcommerce.Controllers
                 order.Items.Add(new OrderItem
                 {
                     ProductId = line.Product.Id,
-                    ProductName = line.Product.Name,
+                    ProductName = line.Product.Name + (string.IsNullOrEmpty(line.Variant) ? "" : " (" + line.Variant + ")"),
                     ImageUrl = line.Product.ImageUrl,
                     Slug = line.Product.Slug,
                     UnitPrice = line.Product.Price,

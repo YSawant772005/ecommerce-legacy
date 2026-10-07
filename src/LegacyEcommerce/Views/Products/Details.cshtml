@@ -120,13 +120,43 @@
                 }
             </div>
 
-            @if (!string.IsNullOrEmpty(p.Colors))
+            @if (!string.IsNullOrEmpty(p.Colors) || !string.IsNullOrEmpty(p.Sizes))
             {
-                <div class="pdp-row"><b>Color:</b><span>@p.Colors</span></div>
-            }
-            @if (!string.IsNullOrEmpty(p.Sizes))
-            {
-                <div class="pdp-row"><b>Size:</b><span>@p.Sizes</span></div>
+                <div class="pdp-variant" id="variantPicker">
+                    @if (!string.IsNullOrEmpty(p.Colors))
+                    {
+                        var colors = p.Colors.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
+                        if (colors.Count > 0)
+                        {
+                            <div class="variant-row">
+                                <b>Color:</b>
+                                <span class="variant-opts">
+                                    @for (int ci = 0; ci < colors.Count; ci++)
+                                    {
+                                        <button type="button" class="swatch-opt @(ci == 0 ? "is-selected" : "")" data-swatch="@colors[ci]" data-label="@colors[ci]" title="@colors[ci]"></button>
+                                    }
+                                </span>
+                            </div>
+                        }
+                    }
+                    @if (!string.IsNullOrEmpty(p.Sizes))
+                    {
+                        var sizes = p.Sizes.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
+                        if (sizes.Count > 0)
+                        {
+                            <div class="variant-row">
+                                <b>Size:</b>
+                                <span class="variant-opts">
+                                    @for (int si = 0; si < sizes.Count; si++)
+                                    {
+                                        <button type="button" class="size-opt @(si == 0 ? "is-selected" : "")" data-label="@sizes[si]">@sizes[si]</button>
+                                    }
+                                </span>
+                            </div>
+                        }
+                    }
+                    <div class="variant-pick"><span id="variantPick">Choose your variant</span></div>
+                </div>
             }
 
             <p class="pdp-desc">@p.Description</p>

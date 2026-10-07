@@ -51,13 +51,27 @@
     }
     Nova.setCount = setCount;
 
+    var readVariant = function () {
+        var picker = document.getElementById('variantPicker');
+        if (!picker) return null;
+        var c = picker.querySelector('.swatch-opt.is-selected');
+        var s = picker.querySelector('.size-opt.is-selected');
+        var parts = [];
+        if (c) parts.push(c.getAttribute('data-label'));
+        if (s) parts.push(s.getAttribute('data-label'));
+        if (!parts.length) return '';
+        return parts.join(' \u00B7 ');
+    };
+
     document.addEventListener('click', function (e) {
         var addBtn = e.target.closest ? e.target.closest('[data-add]') : null;
         if (addBtn && !addBtn.disabled) {
             e.preventDefault();
             var id = addBtn.getAttribute('data-add');
+            var variant = readVariant();
+            if (variant === '') { Nova.toast('Please choose a variant first', 'error'); return; }
             addBtn.classList.add('is-busy');
-            Nova.post('/cart/add', { id: id, qty: 1 }).then(function (res) {
+            Nova.post('/cart/add', { id: id, qty: 1, variant: variant }).then(function (res) {
                 addBtn.classList.remove('is-busy');
                 if (!res.ok) { Nova.toast(res.error || 'Could not add to cart', 'error'); return; }
                 setCount('cartCount', res.count);
@@ -76,8 +90,10 @@
         if (buyBtn && !buyBtn.disabled) {
             e.preventDefault();
             var buyId = buyBtn.getAttribute('data-buy');
+            var variantB = readVariant();
+            if (variantB === '') { Nova.toast('Please choose a variant first', 'error'); return; }
             buyBtn.classList.add('is-busy');
-            Nova.post('/cart/add', { id: buyId, qty: 1 }).then(function (res) {
+            Nova.post('/cart/add', { id: buyId, qty: 1, variant: variantB }).then(function (res) {
                 buyBtn.classList.remove('is-busy');
                 if (!res.ok) { Nova.toast(res.error || 'Could not add to cart', 'error'); return; }
                 setCount('cartCount', res.count);

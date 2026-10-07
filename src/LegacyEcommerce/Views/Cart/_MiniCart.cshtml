@@ -23,6 +23,10 @@
                     <img src="@l.Product.ImageUrl" alt="@l.Product.Name" onerror="this.src='/Content/images/placeholder.svg'" />
                     <div class="mini-info">
                         <div class="mini-name">@l.Product.Name</div>
+                        @if (!string.IsNullOrEmpty(l.Variant))
+                        {
+                            <div class="mini-meta cl-variant">@l.Variant</div>
+                        }
                         <div class="mini-meta">&#8377;@l.Product.Price.ToString("N0") &middot; Qty @l.Qty</div>
                     </div>
                     <div class="mini-line-total"><b>&#8377;@l.LineTotal.ToString("N0")</b></div>

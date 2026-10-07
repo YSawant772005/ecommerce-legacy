@@ -11,6 +11,10 @@
                 <img src="@line.Product.ImageUrl" alt="@line.Product.Name" />
                 <div class="ml-body">
                     <b>@line.Product.Name</b>
+                    @if (!string.IsNullOrEmpty(line.Variant))
+                    {
+                        <span class="cl-variant">@line.Variant</span>
+                    }
                     <span>Qty @line.Qty</span>
                 </div>
                 <div class="ml-price">&#8377;@line.LineTotal.ToString("N0")</div>

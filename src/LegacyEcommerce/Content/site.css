@@ -2116,3 +2116,18 @@ span.field-validation-error {
 .rv-body b { color: var(--ink); font-size: 14.5px; }
 .rv-notes { margin-top: 6px; font-style: italic; color: var(--brand); }
 .rv-items { padding-top: 6px; }
+
+/* ---------- product variants ---------- */
+.pdp-variant { margin: 14px 0 4px; display: flex; flex-direction: column; gap: 10px; }
+.variant-row { display: flex; align-items: flex-start; gap: 12px; }
+.variant-row b { min-width: 52px; padding-top: 6px; font-size: 13px; color: var(--ink); }
+.variant-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.swatch-opt { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff; background: var(--c, #e5e7eb); box-shadow: 0 0 0 1.5px var(--line); cursor: pointer; padding: 0; position: relative; }
+.swatch-opt.is-light { box-shadow: 0 0 0 1.5px var(--line); }
+.swatch-opt.is-selected { box-shadow: 0 0 0 2px var(--brand); border-color: var(--brand-soft); }
+.size-opt { min-width: 40px; padding: 7px 12px; border-radius: 9px; border: 1.5px solid var(--line); background: #fff; font-size: 13px; font-weight: 700; color: var(--ink); cursor: pointer; }
+.size-opt:hover { border-color: var(--brand); }
+.size-opt.is-selected { background: var(--brand); border-color: var(--brand); color: #fff; }
+.variant-pick { font-size: 12.5px; font-weight: 600; color: var(--brand); min-height: 16px; }
+.cl-variant { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.mini-info .cl-variant { color: var(--muted); font-size: 11.5px; }

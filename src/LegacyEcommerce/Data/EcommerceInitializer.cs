@@ -99,6 +99,8 @@ namespace LegacyEcommerce.Data
                 "CREATE NONCLUSTERED INDEX IX_CartItem_UserId ON dbo.CartItems(UserId)",
                 "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_CartItem_User_Product' AND object_id = OBJECT_ID('dbo.CartItems')) " +
                 "CREATE UNIQUE INDEX UX_CartItem_User_Product ON dbo.CartItems(UserId, ProductId)",
+                "IF COL_LENGTH('dbo.CartItems', 'Variant') IS NULL " +
+                "ALTER TABLE dbo.CartItems ADD Variant NVARCHAR(120) NULL",
                 "IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'WishlistItems') " +
                 "CREATE TABLE dbo.WishlistItems(" +
                 "Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY, " +

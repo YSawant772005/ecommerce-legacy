@@ -13,6 +13,9 @@ namespace LegacyEcommerce.Models
 
         public int Qty { get; set; }
 
+        [StringLength(120)]
+        public string Variant { get; set; }
+
         public DateTime UpdatedOn { get; set; }
 
         public virtual User User { get; set; }

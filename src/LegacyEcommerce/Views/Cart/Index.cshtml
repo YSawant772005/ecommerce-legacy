@@ -43,6 +43,10 @@
                         <div class="cl-info">
                             <div class="cl-brand">@item.Brand.Name</div>
                             <a class="cl-name" href="@Url.Action("Details", "Products", new { slug = item.Slug })">@item.Name</a>
+                            @if (!string.IsNullOrEmpty(line.Variant))
+                            {
+                                <div class="cl-variant">@line.Variant</div>
+                            }
                             <div class="cl-actions">
                                 <div class="qty" data-id="@item.Id">
                                     <button type="button" data-step="-1" aria-label="Decrease">&minus;</button>

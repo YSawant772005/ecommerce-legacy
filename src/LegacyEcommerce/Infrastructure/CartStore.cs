@@ -36,6 +36,7 @@ namespace LegacyEcommerce.Infrastructure
                         UserId = userId,
                         ProductId = l.ProductId,
                         Qty = l.Qty,
+                        Variant = l.Variant,
                         UpdatedOn = DateTime.Now
                     });
                 }
@@ -57,7 +58,7 @@ namespace LegacyEcommerce.Infrastructure
             var lines = SessionCart.Lines(session);
             var dbLines = db.CartItems
                 .Where(c => c.UserId == userId)
-                .Select(c => new { c.ProductId, c.Qty })
+                .Select(c => new { c.ProductId, c.Qty, c.Variant })
                 .ToList();
 
             foreach (var dl in dbLines)
@@ -65,11 +66,20 @@ namespace LegacyEcommerce.Infrastructure
                 var line = lines.FirstOrDefault(l => l.ProductId == dl.ProductId);
                 if (line == null)
                 {
-                    lines.Add(new CartLine { ProductId = dl.ProductId, Qty = Math.Min(10, dl.Qty) });
+                    lines.Add(new CartLine
+                    {
+                        ProductId = dl.ProductId,
+                        Qty = Math.Min(10, dl.Qty),
+                        Variant = dl.Variant
+                    });
                 }
                 else
                 {
                     line.Qty = Math.Min(10, Math.Max(line.Qty, dl.Qty));
+                    if (string.IsNullOrEmpty(line.Variant) && !string.IsNullOrEmpty(dl.Variant))
+                    {
+                        line.Variant = dl.Variant;
+                    }
                 }
             }
 

@@ -98,6 +98,10 @@ namespace LegacyEcommerce.Data
                 .HasForeignKey(c => c.ProductId)
                 .WillCascadeOnDelete(true);
 
+            modelBuilder.Entity<CartItem>()
+                .Property(c => c.Variant)
+                .HasMaxLength(120);
+
             modelBuilder.Entity<UserCart>()
                 .HasRequired(c => c.User)
                 .WithMany()
