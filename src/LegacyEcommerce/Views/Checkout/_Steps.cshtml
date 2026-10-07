@@ -1,0 +1,17 @@
+@model int
+<div class="steps-bar">
+    <div class="sb-item @(Model == 1 ? "is-current" : (Model > 1 ? "is-done" : ""))">
+        <span class="sb-dot">@(Model > 1 ? "\u2713" : "1")</span>
+        <span class="sb-label">Address</span>
+    </div>
+    <div class="sb-line @(Model > 1 ? "is-done" : "")"></div>
+    <div class="sb-item @(Model == 2 ? "is-current" : (Model > 2 ? "is-done" : ""))">
+        <span class="sb-dot">@(Model > 2 ? "\u2713" : "2")</span>
+        <span class="sb-label">Payment</span>
+    </div>
+    <div class="sb-line @(Model > 2 ? "is-done" : "")"></div>
+    <div class="sb-item @(Model == 3 ? "is-current" : "")">
+        <span class="sb-dot">3</span>
+        <span class="sb-label">Review</span>
+    </div>
+</div>

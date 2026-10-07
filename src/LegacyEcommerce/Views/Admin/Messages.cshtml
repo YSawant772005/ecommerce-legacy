@@ -1,0 +1,86 @@
+@model LegacyEcommerce.Models.ViewModels.AdminMessagesViewModel
+@{
+    ViewBag.Title = "Contact Messages";
+    int totalPages = Model.TotalPages;
+}
+
+<div class="panel">
+    <div class="panel-head">
+        <form class="inline-search" action="@Url.Action("Messages", "Admin")" method="get">
+            <input type="search" name="q" value="@Model.Q" placeholder="Search name, email, topic or message..." />
+            <button class="btn btn-primary" type="submit">Search</button>
+            @if (!string.IsNullOrEmpty(Model.Q))
+            {
+                <a class="btn btn-ghost" href="@Url.Action("Messages", "Admin")">Clear</a>
+            }
+        </form>
+        <div class="admin-chip">@Model.TotalCount.ToString("N0") messages &middot; @Model.UnreadCount unread</div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>From</th>
+                <th>Topic</th>
+                <th>Message</th>
+                <th>Received</th>
+                <th class="right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var m in Model.Messages)
+            {
+                <tr>
+                    <td>
+                        <b>@m.Name</b>
+                        @if (!m.IsRead)
+                        {
+                            <span class="stock-pill green">New</span>
+                        }
+                        <div class="t-sub">@m.Email</div>
+                        <div class="t-sub">@(string.IsNullOrEmpty(m.Phone) ? "no phone" : m.Phone)</div>
+                    </td>
+                    <td>@m.Topic</td>
+                    <td>@m.Message</td>
+                    <td>@m.CreatedOn.ToString("dd MMM yyyy")<div class="t-sub">@m.CreatedOn.ToString("hh:mm tt")</div></td>
+                    <td class="right">
+                        <div class="row-actions">
+                            @if (!m.IsRead)
+                            {
+                                <form action="@Url.Action("MessageRead", "Admin", new { id = m.Id })" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-mini btn-primary" type="submit">Mark read</button>
+                                </form>
+                            }
+                            <a class="btn btn-mini btn-ghost" href="mailto:@m.Email">Reply</a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (Model.Messages.Count == 0)
+    {
+        <div class="panel-empty">No messages found.</div>
+    }
+
+    @if (totalPages > 1)
+    {
+        <div class="pager">
+            <a class="@(Model.Page <= 1 ? "is-disabled" : "")" href="@Url.Action("Messages", "Admin", new { q = Model.Q, page = Model.Page - 1 })">&larr; Prev</a>
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                if (i == 1 || i == totalPages || Math.Abs(i - Model.Page) <= 2)
+                {
+                    <a class="@(i == Model.Page ? "is-current" : "")" href="@Url.Action("Messages", "Admin", new { q = Model.Q, page = i })">@i</a>
+                }
+                else if (Math.Abs(i - Model.Page) == 3)
+                {
+                    <span class="gap">&hellip;</span>
+                }
+            }
+            <a class="@(Model.Page >= totalPages ? "is-disabled" : "")" href="@Url.Action("Messages", "Admin", new { q = Model.Q, page = Model.Page + 1 })">Next &rarr;</a>
+        </div>
+    }
+</div>

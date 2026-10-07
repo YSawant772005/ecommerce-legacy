@@ -1,0 +1,49 @@
+@{
+    ViewBag.Title = "Privacy Policy";
+}
+
+<div class="container static-page">
+    <nav class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a><span class="sep">/</span><span>Privacy Policy</span>
+    </nav>
+
+    <div class="static-hero">
+        <h1>Privacy policy</h1>
+        <p>Last updated: 1 January 2026. This policy explains what NovaKart collects, why, and the choices you have.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Information we collect</h2>
+        <p><b>Account information</b> - name, email address, phone number and password (stored only as a salted hash). <b>Order information</b> - delivery address, items ordered and payment method. <b>Usage information</b> - pages viewed, products browsed and items in your cart, used to improve recommendations.</p>
+        <p>Payment card numbers and CVVs are never stored on NovaKart servers; card payments are validated only for format at checkout in this environment.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>How we use your information</h2>
+        <p>To process and deliver orders, provide order tracking and customer support, prevent fraud, send transactional emails (order confirmations, password resets) and - only with your consent - newsletter offers you can unsubscribe from at any time.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Sharing and disclosure</h2>
+        <p>We share delivery details (name, address, phone) only with the courier fulfilling your order and with sellers fulfilling marketplace items. We do not sell personal data. We disclose information when required by law or to protect the rights and safety of our customers.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Cookies</h2>
+        <p>NovaKart uses first-party session cookies to keep you signed in, remember your cart and wishlist, and remember items you have recently viewed. Blocking cookies will prevent checkout and account features from working.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Your rights</h2>
+        <p>You can review and edit your profile and addresses anytime under <b>My Account</b>. To request deletion of your account and associated personal data, write to us via the <a href="@Url.Action("Contact", "Home")">contact page</a>. We respond to verified requests within 30 days.</p>
+    </div>
+
+    <div class="static-cta">
+        <h2>Questions about privacy?</h2>
+        <p>We are happy to explain exactly what we store and why.</p>
+        <div class="static-cta-actions">
+            <a class="btn btn-accent" href="@Url.Action("Contact", "Home")">Contact us</a>
+            <a class="btn btn-ghost" href="@Url.Action("Terms", "Home")">Terms of service</a>
+        </div>
+    </div>
+</div>

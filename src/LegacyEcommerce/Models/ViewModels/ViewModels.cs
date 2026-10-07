@@ -164,7 +164,6 @@ namespace LegacyEcommerce.Models.ViewModels
         [RegularExpression(@"[0-9]{6}", ErrorMessage = "PIN code must be 6 digits")]
         public string PostalCode { get; set; }
 
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Choose a payment method")]
         public string PaymentMethod { get; set; }
 
         public string Notes { get; set; }
@@ -178,6 +177,60 @@ namespace LegacyEcommerce.Models.ViewModels
         public string Country
         {
             get { return "India"; }
+        }
+    }
+
+    public class CheckoutState
+    {
+        public bool AddressDone { get; set; }
+        public bool PaymentDone { get; set; }
+
+        public int? SelectedAddressId { get; set; }
+        public bool SaveAddress { get; set; }
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
+        public string AddressLine { get; set; }
+        public string City { get; set; }
+        public string State { get; set; }
+        public string PostalCode { get; set; }
+
+        public string PaymentMethod { get; set; }
+        public string PaymentDetail { get; set; }
+
+        public string Notes { get; set; }
+    }
+
+    public class PaymentStepViewModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Choose a payment method")]
+        public string PaymentMethod { get; set; }
+
+        [StringLength(25)]
+        public string CardNumber { get; set; }
+
+        [StringLength(60)]
+        public string CardName { get; set; }
+
+        [StringLength(5)]
+        public string Expiry { get; set; }
+
+        [StringLength(4)]
+        public string Cvv { get; set; }
+
+        [StringLength(80)]
+        public string UpiId { get; set; }
+    }
+
+    public class ReviewOrderViewModel
+    {
+        public CartViewModel Cart { get; set; }
+        public CheckoutState State { get; set; }
+
+        public ReviewOrderViewModel()
+        {
+            Cart = new CartViewModel();
+            State = new CheckoutState();
         }
     }
 
@@ -292,6 +345,28 @@ namespace LegacyEcommerce.Models.ViewModels
         public string CurrentPassword { get; set; }
 
         [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Enter a new password")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters")]
+        [DataType(DataType.Password)]
+        public string NewPassword { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Compare("NewPassword", ErrorMessage = "Passwords do not match")]
+        [DataType(DataType.Password)]
+        public string ConfirmPassword { get; set; }
+    }
+
+    public class ForgotPasswordViewModel
+    {
+        [Required(ErrorMessage = "Enter your email address")]
+        [EmailAddress(ErrorMessage = "Enter a valid email address")]
+        public string Email { get; set; }
+    }
+
+    public class ResetPasswordViewModel
+    {
+        [Required]
+        public string Token { get; set; }
+
+        [Required(ErrorMessage = "Enter a new password")]
         [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters")]
         [DataType(DataType.Password)]
         public string NewPassword { get; set; }
@@ -442,6 +517,96 @@ namespace LegacyEcommerce.Models.ViewModels
         public DateTime CreatedOn { get; set; }
         public int OrderCount { get; set; }
         public decimal TotalSpent { get; set; }
+    }
+
+    public class AdminMessagesViewModel
+    {
+        public List<AdminMessageRow> Messages { get; set; }
+        public string Q { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalCount { get; set; }
+        public int UnreadCount { get; set; }
+        public int TotalPages { get { return PageSize <= 0 ? 1 : (int)Math.Ceiling(TotalCount / (double)PageSize); } }
+
+        public AdminMessagesViewModel()
+        {
+            Messages = new List<AdminMessageRow>();
+            Page = 1;
+            PageSize = 20;
+        }
+    }
+
+    public class AdminMessageRow
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
+        public string Topic { get; set; }
+        public string Message { get; set; }
+        public bool IsRead { get; set; }
+        public DateTime CreatedOn { get; set; }
+    }
+
+    public class AdminNewsletterViewModel
+    {
+        public List<AdminSubscriberRow> Subscribers { get; set; }
+        public string Q { get; set; }
+        public string Status { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalCount { get; set; }
+        public int ActiveCount { get; set; }
+        public int TotalPages { get { return PageSize <= 0 ? 1 : (int)Math.Ceiling(TotalCount / (double)PageSize); } }
+
+        public AdminNewsletterViewModel()
+        {
+            Subscribers = new List<AdminSubscriberRow>();
+            Page = 1;
+            PageSize = 20;
+        }
+    }
+
+    public class AdminSubscriberRow
+    {
+        public int Id { get; set; }
+        public string Email { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime CreatedOn { get; set; }
+    }
+
+    public class AdminReviewsViewModel
+    {
+        public List<AdminReviewRow> Reviews { get; set; }
+        public string Q { get; set; }
+        public string Status { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalCount { get; set; }
+        public int HiddenCount { get; set; }
+        public int TotalPages { get { return PageSize <= 0 ? 1 : (int)Math.Ceiling(TotalCount / (double)PageSize); } }
+
+        public AdminReviewsViewModel()
+        {
+            Reviews = new List<AdminReviewRow>();
+            Page = 1;
+            PageSize = 20;
+        }
+    }
+
+    public class AdminReviewRow
+    {
+        public int Id { get; set; }
+        public string AuthorName { get; set; }
+        public int Rating { get; set; }
+        public string Title { get; set; }
+        public string Body { get; set; }
+        public bool VerifiedPurchase { get; set; }
+        public bool IsApproved { get; set; }
+        public DateTime CreatedOn { get; set; }
+        public string ProductName { get; set; }
+        public string ProductSlug { get; set; }
     }
 
     public class AdminProductsViewModel

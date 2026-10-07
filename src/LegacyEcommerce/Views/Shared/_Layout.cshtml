@@ -146,6 +146,7 @@
                     <li><a href="@Url.Action("Register", "Account")">New Registration</a></li>
                     <li><a href="@Url.Action("About", "Home")">About us</a></li>
                     <li><a href="@Url.Action("Contact", "Home")">Contact us</a></li>
+                    <li><a href="@Url.Action("Faq", "Home")">FAQ</a></li>
                 </ul>
             </div>
             <div>
@@ -160,11 +161,18 @@
                     <input type="email" name="Email" placeholder="you@example.com" required aria-label="Email address" />
                     <button type="submit">Join</button>
                 </form>
+                <a class="newsletter-unsub" href="@Url.Action("Unsubscribe", "Home")">Unsubscribe from emails</a>
             </div>
         </div>
         <div class="container footer-bottom">
             <div>&copy; @DateTime.Now.Year NovaKart Commerce. Built as a .NET Framework 4.7 MVC class project.</div>
-            <div>Privacy &middot; Terms &middot; Shipping &middot; Returns</div>
+            <div>
+                <a href="@Url.Action("Privacy", "Home")">Privacy</a> &middot;
+                <a href="@Url.Action("Terms", "Home")">Terms</a> &middot;
+                <a href="@Url.Action("Shipping", "Home")">Shipping</a> &middot;
+                <a href="@Url.Action("Returns", "Home")">Returns</a> &middot;
+                <a href="@Url.Action("Faq", "Home")">FAQ</a>
+            </div>
         </div>
     </footer>
 

@@ -1,0 +1,50 @@
+@{
+    ViewBag.Title = "Returns & Refunds";
+}
+
+<div class="container static-page">
+    <nav class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a><span class="sep">/</span><span>Returns &amp; Refunds</span>
+    </nav>
+
+    <div class="static-hero">
+        <h1>Returns &amp; refunds</h1>
+        <p>15-day easy returns on most categories, with refunds you can actually see.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Return window</h2>
+        <p>Most items can be returned within <b>15 days of delivery</b>. The item must be unused, with all tags attached and in its original packaging, along with the invoice. Certain categories (innerwear, perishables, personal care items opened by you, and made-to-order products) are not returnable unless damaged or defective on arrival.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Starting a return</h2>
+        <p>Open <b>My Account &rarr; Orders</b>, select the order and choose <b>Return</b>. Pick a reason and a pickup slot - we schedule a free reverse pickup for eligible items. Keep the item packed until the courier arrives; hand it over only against a return receipt.</p>
+        <p>Exchanges follow the same flow: choose <b>Exchange</b> and select the replacement size or variant. If the replacement is unavailable we convert it to a refund automatically.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Refunds</h2>
+        <p>Once the return reaches us and passes inspection, the refund is initiated the same day. Prepaid orders are refunded to the original payment method (3-5 business days to reflect, depending on your bank). COD orders are refunded to a bank account via UPI or NEFT - support will collect your payment details if needed.</p>
+        <p>Shipping charges are refunded in full when the entire order is returned because of our error (wrong item, manufacturing defect) or a cancelled order. Convenience or COD fees, where applicable, are not refunded on change-of-mind returns.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Damaged or wrong items</h2>
+        <p>Report it within 48 hours of delivery with photos via the <a href="@Url.Action("Contact", "Home")">contact page</a>. Verified claims get an immediate free replacement or full refund, including shipping - you never pay to fix our mistake.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Cancellations</h2>
+        <p>You can cancel any order that is still in <b>Placed</b> status from the order detail page. Prepaid cancellations are refunded in full to the original payment method within 3-5 business days.</p>
+    </div>
+
+    <div class="static-cta">
+        <h2>Ready to return something?</h2>
+        <p>It takes two minutes from your orders page.</p>
+        <div class="static-cta-actions">
+            <a class="btn btn-accent" href="@Url.Action("Index", "Account")">Go to my orders</a>
+            <a class="btn btn-ghost" href="@Url.Action("Contact", "Home")">Contact support</a>
+        </div>
+    </div>
+</div>

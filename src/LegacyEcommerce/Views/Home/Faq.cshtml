@@ -1,0 +1,77 @@
+@{
+    ViewBag.Title = "Frequently Asked Questions";
+}
+
+<div class="container static-page">
+    <nav class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a><span class="sep">/</span><span>FAQ</span>
+    </nav>
+
+    <div class="static-hero">
+        <h1>Frequently asked questions</h1>
+        <p>Quick answers about orders, payments, delivery and returns. Still stuck? <a href="@Url.Action("Contact", "Home")">Contact us</a>.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Orders &amp; tracking</h2>
+        <h3>How do I track my order?</h3>
+        <p>Sign in and open <b>My Account &rarr; Orders</b>, or use the link in your order confirmation email. Every order shows its current status, from Placed to Delivered.</p>
+
+        <h3>Can I cancel an order?</h3>
+        <p>Yes. Orders can be cancelled from the order detail page while they are still Placed. Once an order ships it moves to the 15-day return window instead.</p>
+
+        <h3>Do I need an account to order?</h3>
+        <p>No - guest checkout works. Creating an account lets you track orders, save addresses, sync your wishlist across devices and earn member-only deals.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Payments</h2>
+        <h3>Which payment methods do you accept?</h3>
+        <p>Cash on Delivery, UPI (Google Pay, PhonePe, Paytm and more) and credit/debit cards (Visa, Mastercard, RuPay) with 3D Secure.</p>
+
+        <h3>Is there a COD fee?</h3>
+        <p>No. Cash on Delivery carries a fee of &#8377;0 on NovaKart.</p>
+
+        <h3>Are coupon codes combinable?</h3>
+        <p>One coupon applies per order. Enter it on the cart page - the discount is reflected in the totals before you place the order.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Shipping</h2>
+        <h3>How long does delivery take?</h3>
+        <p>Metro cities usually receive orders in 2-4 business days; other serviceable pincodes take 4-7 business days. Delivery timelines are estimates, not guarantees.</p>
+
+        <h3>Is shipping free?</h3>
+        <p>Orders above the free-shipping threshold ship free; smaller orders carry a flat fee shown at checkout. Full details are on the <a href="@Url.Action("Shipping", "Home")">shipping policy</a>.</p>
+
+        <h3>Where do you deliver?</h3>
+        <p>Across India - we service 19,000+ pincodes. Enter your pincode on the product page to confirm serviceability.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Returns &amp; refunds</h2>
+        <h3>What is the return window?</h3>
+        <p>15 days from delivery for most categories, provided the item is unused with tags and original packaging. See the full <a href="@Url.Action("Returns", "Home")">returns and refunds policy</a>.</p>
+
+        <h3>How long do refunds take?</h3>
+        <p>Once a return is inspected and approved, refunds are initiated immediately and typically reflect in 3-5 business days for prepaid orders. COD refunds are processed to a bank account via UPI or NEFT.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Account &amp; security</h2>
+        <h3>I forgot my password.</h3>
+        <p>Use the <a href="@Url.Action("ForgotPassword", "Account")">forgot password</a> link on the sign-in page. The reset link is valid for 30 minutes and can be used once.</p>
+
+        <h3>Is my data safe?</h3>
+        <p>We only store what is needed to fulfil orders and never share personal data with third parties for marketing. Read the <a href="@Url.Action("Privacy", "Home")">privacy policy</a> for details.</p>
+    </div>
+
+    <div class="static-cta">
+        <h2>Still have a question?</h2>
+        <p>Our support team replies within 24 hours on business days.</p>
+        <div class="static-cta-actions">
+            <a class="btn btn-accent" href="@Url.Action("Contact", "Home")">Contact us</a>
+            <a class="btn btn-ghost" href="@Url.Action("Index", "Products")">Browse products</a>
+        </div>
+    </div>
+</div>

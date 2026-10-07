@@ -124,7 +124,7 @@ namespace LegacyEcommerce.Controllers
                 .ToList();
 
             var reviews = db.Reviews
-                .Where(r => r.ProductId == product.Id)
+                .Where(r => r.ProductId == product.Id && r.IsApproved)
                 .OrderByDescending(r => r.CreatedOn)
                 .Take(12)
                 .ToList();
@@ -193,6 +193,7 @@ namespace LegacyEcommerce.Controllers
                 Title = model.Title.Trim(),
                 Body = model.Body.Trim(),
                 VerifiedPurchase = verified,
+                IsApproved = true,
                 CreatedOn = DateTime.Now
             });
 

@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using LegacyEcommerce.Data;
+using LegacyEcommerce.Infrastructure;
 using LegacyEcommerce.Models;
 
 namespace LegacyEcommerce.Controllers
 {
     public class WishlistController : Controller
     {
-        private const string Key = "NK.Wishlist";
         private readonly StoreContext db = new StoreContext();
 
         protected override void Dispose(bool disposing)
@@ -20,13 +20,12 @@ namespace LegacyEcommerce.Controllers
 
         private List<int> Ids()
         {
-            var list = Session[Key] as List<int>;
-            if (list == null)
-            {
-                list = new List<int>();
-                Session[Key] = list;
-            }
-            return list;
+            return WishlistStore.Ids(Session);
+        }
+
+        private void Persist()
+        {
+            WishlistStore.SaveIfAuthenticated(db, Session);
         }
 
         public ActionResult Index()
@@ -42,6 +41,10 @@ namespace LegacyEcommerce.Controllers
         [HttpPost]
         public ActionResult Toggle(int id)
         {
+            if (!db.Products.Any(p => p.Id == id))
+            {
+                return Json(new { ok = false, error = "Product not found." });
+            }
             var ids = Ids();
             bool on;
             if (ids.Contains(id))
@@ -54,6 +57,7 @@ namespace LegacyEcommerce.Controllers
                 ids.Add(id);
                 on = true;
             }
+            Persist();
             return Json(new { ok = true, on, count = ids.Count });
         }
 

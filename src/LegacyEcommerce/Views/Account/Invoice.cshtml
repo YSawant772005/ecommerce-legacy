@@ -1,0 +1,108 @@
+@model LegacyEcommerce.Models.Order
+@{
+    ViewBag.Title = "Invoice " + Model.OrderNumber;
+    var items = Model.Items != null ? Model.Items : new List<LegacyEcommerce.Models.OrderItem>();
+    var paid = Model.Status == OrderStatus.Delivered;
+}
+
+<div class="invoice-toolbar">
+    <a class="btn btn-ghost" href="@Url.Action("Order", "Account", new { id = Model.OrderNumber })">&larr; Order details</a>
+    <button class="btn btn-primary" type="button" onclick="window.print();">Print / Save as PDF &#9841;</button>
+</div>
+
+<div class="invoice">
+    <div class="inv-top">
+        <div class="inv-brand">
+            <div class="inv-logo">NovaKart</div>
+            <div class="inv-addr">2nd Floor, Tech Park One,<br />MG Road, Bengaluru &ndash; 560001<br />support@novakart.in &middot; 1800-419-8888</div>
+        </div>
+        <div class="inv-meta">
+            <h1>Tax Invoice</h1>
+            <table class="inv-rows">
+                <tr><td>Invoice no.</td><td><b>@Model.OrderNumber</b></td></tr>
+                <tr><td>Invoice date</td><td>@Model.CreatedOn.ToString("dd MMM yyyy")</td></tr>
+                <tr><td>Order status</td><td><b>@Model.Status</b></td></tr>
+                <tr><td>Payment</td><td>@(Model.PaymentMethod == "COD" ? "Cash on Delivery" : Model.PaymentMethod)</td></tr>
+                <tr><td>Payment status</td><td>@(paid ? "Completed" : "Pending")</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="inv-parties">
+        <div>
+            <h4>Billed to</h4>
+            <p>@Model.FullName<br />@Model.AddressLine<br />@Model.City, @Model.State &ndash; @Model.PostalCode<br />@Model.Phone</p>
+        </div>
+        <div>
+            <h4>Shipped to</h4>
+            <p>@Model.FullName<br />@Model.AddressLine<br />@Model.City, @Model.State &ndash; @Model.PostalCode<br />@Model.Phone</p>
+        </div>
+    </div>
+
+    <table class="inv-table">
+        <thead>
+            <tr><th>#</th><th>Item</th><th class="right">Unit price</th><th class="right">Qty</th><th class="right">Amount</th></tr>
+        </thead>
+        <tbody>
+            @{ int row = 0; }
+            @foreach (var item in items)
+            {
+                row = row + 1;
+                <tr>
+                    <td>@row</td>
+                    <td>@item.ProductName</td>
+                    <td class="right">&#8377;@item.UnitPrice.ToString("N0")</td>
+                    <td class="right">@item.Quantity</td>
+                    <td class="right">&#8377;@((item.UnitPrice * item.Quantity).ToString("N0"))</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="inv-totals">
+        <div class="s-row"><span>Subtotal</span><b>&#8377;@Model.Subtotal.ToString("N0")</b></div>
+        <div class="s-row"><span>Discount @(string.IsNullOrEmpty(Model.CouponCode) ? "" : "(" + Model.CouponCode + ")")</span><b class="@(Model.Discount > 0 ? "green" : "")">@(Model.Discount > 0 ? "\u2212\u20B9" + Model.Discount.ToString("N0") : "\u20B90")</b></div>
+        <div class="s-row"><span>Delivery charges</span><b>@(Model.Shipping == 0 ? "FREE" : "\u20B9" + Model.Shipping.ToString("N0"))</b></div>
+        <div class="s-row"><span>GST (18%)</span><b>&#8377;@Model.Tax.ToString("N2")</b></div>
+        <div class="s-total"><span>Grand total</span><b>&#8377;@Model.Total.ToString("N0")</b></div>
+    </div>
+
+    <div class="inv-foot">
+        <p>GSTIN: 29AAFCN8623M1Z8 &middot; CIN: U74999KA2016PTC092244</p>
+        <p>This is a system-generated invoice and does not require a physical signature. For order cancellations or returns, contact support within the return window shown on the order page.</p>
+        <p class="inv-thanks">Thank you for shopping at NovaKart!</p>
+    </div>
+</div>
+
+<style>
+    .invoice { max-width: 760px; margin: 0 auto; background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 34px 38px; }
+    .invoice-toolbar { max-width: 760px; margin: 0 auto 16px; display: flex; gap: 10px; justify-content: flex-end; }
+    .inv-top { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    .inv-logo { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; color: #111827; }
+    .inv-addr, .inv-foot p { font-size: 12.5px; line-height: 1.65; color: #6b7280; margin: 8px 0 0; }
+    .inv-meta h1 { font-size: 20px; margin: 0 0 12px; text-align: right; }
+    .inv-rows { border-collapse: collapse; font-size: 13px; }
+    .inv-rows td { padding: 3px 0 3px 16px; text-align: right; color: #6b7280; }
+    .inv-rows td b { color: #111827; }
+    .inv-parties { display: flex; gap: 40px; margin: 26px 0; padding: 18px 0; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; }
+    .inv-parties h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; }
+    .inv-parties p { margin: 0; font-size: 13.5px; line-height: 1.7; color: #374151; }
+    .inv-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .inv-table th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: #9ca3af; padding: 8px 10px; border-bottom: 1px solid #e5e7eb; }
+    .inv-table th.right, .inv-table td.right { text-align: right; }
+    .inv-table td { padding: 10px; border-bottom: 1px solid #f3f4f6; color: #111827; }
+    .inv-totals { margin: 18px 0 0 auto; max-width: 330px; }
+    .inv-totals .s-row, .inv-totals .s-total { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; color: #374151; }
+    .inv-totals .s-total { border-top: 1px solid #e5e7eb; margin-top: 8px; padding-top: 10px; font-weight: 700; font-size: 16px; color: #111827; }
+    .inv-totals .s-row b.green { color: #059669; }
+    .inv-foot { margin-top: 26px; border-top: 1px dashed #e5e7eb; padding-top: 14px; }
+    .inv-thanks { margin-top: 6px !important; font-weight: 600; color: #111827 !important; }
+    .inv-addr { margin-top: 6px; }
+    @@media print {
+        body * { visibility: hidden; }
+        .invoice, .invoice * { visibility: visible; }
+        .invoice { position: absolute; left: 0; top: 0; width: 100%; max-width: none; border: none; border-radius: 0; padding: 18mm 10mm; }
+        .invoice-toolbar { display: none; }
+        .inv-table td { border-bottom: 1px solid #e5e7eb; }
+    }
+</style>

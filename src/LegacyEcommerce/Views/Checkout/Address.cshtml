@@ -3,6 +3,7 @@
     ViewBag.Title = "Checkout";
     var t = Model.Cart.Totals;
     var auth = Auth.FromSession(Context.Session);
+    var step = ViewBag.Step != null ? (int)ViewBag.Step : 1;
 }
 
 <div class="container">
@@ -13,7 +14,9 @@
 
     <h1 class="page-title">Checkout</h1>
 
-    @using (Html.BeginForm("Index", "Checkout", FormMethod.Post, new { @class = "checkout-form", id = "checkoutForm" }))
+    @Html.Partial("_Steps", step)
+
+    @using (Html.BeginForm("Address", "Checkout", FormMethod.Post, new { @class = "checkout-form", id = "checkoutForm" }))
     {
         @Html.AntiForgeryToken()
         @Html.ValidationSummary(true, "", new { @class = "field-error summary-error" })
@@ -94,41 +97,12 @@
                 </div>
 
                 <div class="step-card">
-                    <div class="step-head"><span class="step-no">2</span><h3>Payment method</h3></div>
-                    <div class="pay-options">
-                        <label class="pay-opt">
-                            <input type="radio" name="PaymentMethod" value="COD" checked="@(Model.PaymentMethod == "COD" || string.IsNullOrEmpty(Model.PaymentMethod))" />
-                            <span class="po-body">
-                                <b>Cash on Delivery</b>
-                                <span>Pay when your order arrives. Fee &#8377;0.</span>
-                            </span>
-                        </label>
-                        <label class="pay-opt">
-                            <input type="radio" name="PaymentMethod" value="UPI" checked="@(Model.PaymentMethod == "UPI")" />
-                            <span class="po-body">
-                                <b>UPI / Wallet</b>
-                                <span>Google Pay, PhonePe, Paytm and more.</span>
-                            </span>
-                        </label>
-                        <label class="pay-opt">
-                            <input type="radio" name="PaymentMethod" value="Card" checked="@(Model.PaymentMethod == "Card")" />
-                            <span class="po-body">
-                                <b>Credit / Debit Card</b>
-                                <span>Visa, Mastercard, RuPay. Secured by 3D Secure.</span>
-                            </span>
-                        </label>
-                    </div>
-                    @Html.ValidationMessageFor(m => m.PaymentMethod)
-                </div>
-
-                <div class="step-card">
-                    <div class="step-head"><span class="step-no">3</span><h3>Order notes <small>(optional)</small></h3></div>
+                    <div class="step-head"><span class="step-no">2</span><h3>Order notes <small>(optional)</small></h3></div>
                     @Html.TextAreaFor(m => m.Notes, new { placeholder = "Delivery instructions, landmark, gate code...", rows = "3" })
                 </div>
 
                 <button class="btn btn-accent place-order-btn" type="submit">
-                    Place Order &mdash; &#8377;@t.Total.ToString("N0")
-                    <span class="po-sub">@(string.IsNullOrEmpty(t.CouponCode) ? "" : " (coupon " + t.CouponCode + " applied)")</span>
+                    Continue to Payment &rarr;
                 </button>
 
                 @if (auth == null)

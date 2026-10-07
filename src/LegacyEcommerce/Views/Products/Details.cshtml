@@ -23,7 +23,36 @@
     var wished = wish.Contains(p.Id);
     var sessionUser = Auth.FromSession(Context.Session);
     var openTab = ViewBag.Tab as string;
+
+    Func<string, string> J = s => System.Web.HttpUtility.JavaScriptStringEncode(s == null ? "" : s);
+    string canonical = "/product/" + p.Slug;
+    var images = new List<string>();
+    if (!string.IsNullOrWhiteSpace(p.ImageUrl))
+    {
+        images.Add(p.ImageUrl);
+    }
+    if (!string.IsNullOrWhiteSpace(p.ImageUrl2))
+    {
+        images.Add(p.ImageUrl2);
+    }
+    if (!string.IsNullOrWhiteSpace(p.ImageUrl3))
+    {
+        images.Add(p.ImageUrl3);
+    }
+    if (images.Count == 0)
+    {
+        images.Add(Url.Content("~/Content/images/" + (p.Category != null ? p.Category.Slug + "-v1.svg" : "product-v1.svg")));
+    }
+    var ld = "{\"@context\":\"https://schema.org\",\"@type\":\"Product\",\"@id\":\"" + canonical + "\",\"name\":\"" + J(p.Name) + "\",\"image\":[" +
+        string.Join(",", images.ConvertAll(i => "\"" + J(i) + "\"")) + "],\"description\":\"" + J(p.ShortDescription) + "\",\"sku\":\"" + J(p.Sku) + "\",\"mpn\":\"" + J(p.Sku) + "\",\"brand\":{\"@type\":\"Brand\",\"name\":\"" + J(p.Brand != null ? p.Brand.Name : "") + "\"},\"category\":\"" + J(p.Category != null ? p.Category.Name : "") + "\",\"url\":\"" + canonical + "\"";
+    if (p.RatingCount > 0)
+    {
+        ld = ld + ",\"aggregateRating\":{\"@type\":\"AggregateRating\",\"ratingValue\":\"" + p.Rating.ToString("0.0") + "\",\"reviewCount\":\"" + p.RatingCount.ToString() + "\"}";
+    }
+    ld = ld + ",\"offers\":{\"@type\":\"Offer\",\"priceCurrency\":\"INR\",\"price\":\"" + p.Price.ToString("0.00") + "\",\"availability\":\"" + (p.Stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock") + "\",\"itemCondition\":\"https://schema.org/NewCondition\",\"url\":\"" + canonical + "\"}}";
 }
+
+<script type="application/ld+json">@Html.Raw(ld)</script>
 
 <div class="container">
     <nav class="breadcrumb">

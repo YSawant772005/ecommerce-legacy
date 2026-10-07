@@ -1,0 +1,49 @@
+@{
+    ViewBag.Title = "Shipping Policy";
+}
+
+<div class="container static-page">
+    <nav class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a><span class="sep">/</span><span>Shipping Policy</span>
+    </nav>
+
+    <div class="static-hero">
+        <h1>Shipping policy</h1>
+        <p>How we pack, ship and deliver orders across India.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Serviceable areas</h2>
+        <p>We deliver to 19,000+ pincodes across India. Enter your pincode on any product page to confirm serviceability for that item before you buy.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Timelines</h2>
+        <p><b>Processing</b> - orders placed before 2 PM are usually dispatched the same day; later orders ship the next business day. <b>Transit</b> - metro cities 2-4 business days, other serviceable pincodes 4-7 business days. Remote locations may take longer. Business days exclude Sundays and public holidays.</p>
+        <p>You receive a tracking reference on the order confirmation page and under <b>My Account &rarr; Orders</b> once the order ships.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Shipping charges</h2>
+        <p>Orders above the free-shipping threshold ship free. Below the threshold a flat fee applies, shown explicitly on the cart page before payment - no charges are added after you confirm the order.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Packaging and safety</h2>
+        <p>Items are packed in tamper-evident cartons with fillers for fragile products. If the parcel arrives visibly damaged, you may refuse delivery at the door or report it within 24 hours of delivery with photos, and we will arrange a replacement or refund.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>Failed deliveries</h2>
+        <p>Our courier makes up to three delivery attempts. If all attempts fail the parcel is returned to us and we issue a full refund. A wrong or incomplete address may delay delivery - contact support as soon as you notice, and we will try to redirect the parcel while it is in transit.</p>
+    </div>
+
+    <div class="static-cta">
+        <h2>Question about a shipment?</h2>
+        <p>Have your order number ready and we will look into it.</p>
+        <div class="static-cta-actions">
+            <a class="btn btn-accent" href="@Url.Action("Contact", "Home")">Contact support</a>
+            <a class="btn btn-ghost" href="@Url.Action("Returns", "Home")">Returns policy</a>
+        </div>
+    </div>
+</div>

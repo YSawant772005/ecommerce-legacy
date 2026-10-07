@@ -122,6 +122,8 @@ namespace LegacyEcommerce.Models
 
         public bool VerifiedPurchase { get; set; }
 
+        public bool IsApproved { get; set; }
+
         public DateTime CreatedOn { get; set; }
 
         public virtual Product Product { get; set; }

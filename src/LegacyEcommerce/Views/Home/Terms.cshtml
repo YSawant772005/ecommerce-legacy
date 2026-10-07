@@ -1,0 +1,54 @@
+@{
+    ViewBag.Title = "Terms of Service";
+}
+
+<div class="container static-page">
+    <nav class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a><span class="sep">/</span><span>Terms of Service</span>
+    </nav>
+
+    <div class="static-hero">
+        <h1>Terms of service</h1>
+        <p>Effective 1 January 2026. By using NovaKart you agree to these terms.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>1. Using NovaKart</h2>
+        <p>You must provide accurate information when creating an account or placing an order, and keep your password confidential. You may not use the site for fraudulent purposes, scrape content at scale, or interfere with the site's operation. Accounts found in violation may be suspended.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>2. Orders and pricing</h2>
+        <p>All prices are shown in Indian Rupees and include GST unless stated otherwise. An order is confirmed only when you receive an order confirmation; an acknowledgement email or cart state is not a contract. In the event of a pricing or stock error we may cancel the affected item and refund you in full.</p>
+        <p>Coupon codes are subject to their own validity, minimum order value and expiry conditions shown at the time of issue. One coupon applies per order.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>3. Payments</h2>
+        <p>Accepted methods are Cash on Delivery, UPI and cards. For prepaid orders the amount is captured at checkout; for COD, payment is collected on delivery. Transaction references shown on your order page serve as payment proof.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>4. Delivery, returns and refunds</h2>
+        <p>Delivery timelines are estimates. Returns are accepted within the window described in our <a href="@Url.Action("Returns", "Home")">returns policy</a>, provided items are unused and in original packaging. Refunds are issued to the original payment method (or a bank account for COD) after inspection.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>5. Content and intellectual property</h2>
+        <p>NovaKart's logo, design, text and photography are owned by or licensed to NovaKart Commerce. Product content supplied by sellers remains the property of the respective sellers. You may not reproduce site content commercially without written permission.</p>
+    </div>
+
+    <div class="static-section">
+        <h2>6. Liability and changes</h2>
+        <p>To the maximum extent permitted by law, NovaKart is liable only for direct losses up to the value of the order in question. We may update these terms; material changes will be announced on this page with a revised date. Continued use after changes constitutes acceptance.</p>
+    </div>
+
+    <div class="static-cta">
+        <h2>Need clarification?</h2>
+        <p>Ask us before you buy - we answer within 24 hours.</p>
+        <div class="static-cta-actions">
+            <a class="btn btn-accent" href="@Url.Action("Contact", "Home")">Contact us</a>
+            <a class="btn btn-ghost" href="@Url.Action("Privacy", "Home")">Privacy policy</a>
+        </div>
+    </div>
+</div>

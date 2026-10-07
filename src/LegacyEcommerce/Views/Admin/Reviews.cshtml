@@ -1,0 +1,111 @@
+@model LegacyEcommerce.Models.ViewModels.AdminReviewsViewModel
+@{
+    ViewBag.Title = "Review Moderation";
+    int totalPages = Model.TotalPages;
+    var status = Model.Status;
+}
+
+<div class="panel">
+    <div class="panel-head">
+        <form class="inline-search" action="@Url.Action("Reviews", "Admin")" method="get">
+            <input type="search" name="q" value="@Model.Q" placeholder="Search author, review or product..." />
+            @if (!string.IsNullOrEmpty(status))
+            {
+                <input type="hidden" name="status" value="@status" />
+            }
+            <button class="btn btn-primary" type="submit">Search</button>
+            @if (!string.IsNullOrEmpty(Model.Q) || !string.IsNullOrEmpty(status))
+            {
+                <a class="btn btn-ghost" href="@Url.Action("Reviews", "Admin")">Clear</a>
+            }
+        </form>
+        <div class="admin-chip">@Model.TotalCount.ToString("N0") shown &middot; @Model.HiddenCount.ToString("N0") hidden</div>
+    </div>
+
+    <div class="row-actions" style="padding: 12px 0 4px;">
+        <a class="btn btn-mini @(string.IsNullOrEmpty(status) ? "btn-primary" : "btn-ghost")" href="@Url.Action("Reviews", "Admin")">All</a>
+        <a class="btn btn-mini @(status == "visible" ? "btn-primary" : "btn-ghost")" href="@Url.Action("Reviews", "Admin", new { status = "visible" })">Visible</a>
+        <a class="btn btn-mini @(status == "hidden" ? "btn-primary" : "btn-ghost")" href="@Url.Action("Reviews", "Admin", new { status = "hidden" })">Hidden</a>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Review</th>
+                <th>Product</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th class="right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Model.Reviews)
+            {
+                <tr>
+                    <td>
+                        <div class="t-sub">@r.AuthorName &middot; @r.Rating / 5 @(r.VerifiedPurchase ? "&middot; verified" : "")</div>
+                        <b>@r.Title</b>
+                        <div>@r.Body</div>
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(r.ProductSlug))
+                        {
+                            <a href="@Url.Action("Details", "Products", new { slug = r.ProductSlug })" target="_blank">@r.ProductName &rarr;</a>
+                        }
+                        else
+                        {
+                            <span>@r.ProductName</span>
+                        }
+                    </td>
+                    <td>
+                        @if (r.IsApproved)
+                        {
+                            <span class="stock-pill green">Visible</span>
+                        }
+                        else
+                        {
+                            <span class="stock-pill">Hidden</span>
+                        }
+                    </td>
+                    <td>@r.CreatedOn.ToString("dd MMM yyyy")</td>
+                    <td class="right">
+                        <div class="row-actions">
+                            <form action="@Url.Action("ReviewToggle", "Admin", new { id = r.Id })" method="post">
+                                @Html.AntiForgeryToken()
+                                <button class="btn btn-mini @(r.IsApproved ? "btn-ghost" : "btn-primary")" type="submit">@(r.IsApproved ? "Hide" : "Approve")</button>
+                            </form>
+                            <form action="@Url.Action("ReviewDelete", "Admin", new { id = r.Id })" method="post" onsubmit="return confirm('Delete this review permanently?');">
+                                @Html.AntiForgeryToken()
+                                <button class="btn btn-mini btn-danger" type="submit">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (Model.Reviews.Count == 0)
+    {
+        <div class="panel-empty">No reviews found.</div>
+    }
+
+    @if (totalPages > 1)
+    {
+        <div class="pager">
+            <a class="@(Model.Page <= 1 ? "is-disabled" : "")" href="@Url.Action("Reviews", "Admin", new { q = Model.Q, status = status, page = Model.Page - 1 })">&larr; Prev</a>
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                if (i == 1 || i == totalPages || Math.Abs(i - Model.Page) <= 2)
+                {
+                    <a class="@(i == Model.Page ? "is-current" : "")" href="@Url.Action("Reviews", "Admin", new { q = Model.Q, status = status, page = i })">@i</a>
+                }
+                else if (Math.Abs(i - Model.Page) == 3)
+                {
+                    <span class="gap">&hellip;</span>
+                }
+            }
+            <a class="@(Model.Page >= totalPages ? "is-disabled" : "")" href="@Url.Action("Reviews", "Admin", new { q = Model.Q, status = status, page = Model.Page + 1 })">Next &rarr;</a>
+        </div>
+    }
+</div>

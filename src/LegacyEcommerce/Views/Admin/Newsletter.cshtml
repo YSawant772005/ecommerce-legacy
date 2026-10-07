@@ -1,0 +1,92 @@
+@model LegacyEcommerce.Models.ViewModels.AdminNewsletterViewModel
+@{
+    ViewBag.Title = "Newsletter Subscribers";
+    int totalPages = Model.TotalPages;
+    var status = Model.Status;
+}
+
+<div class="panel">
+    <div class="panel-head">
+        <form class="inline-search" action="@Url.Action("Newsletter", "Admin")" method="get">
+            <input type="search" name="q" value="@Model.Q" placeholder="Search email..." />
+            @if (!string.IsNullOrEmpty(status))
+            {
+                <input type="hidden" name="status" value="@status" />
+            }
+            <button class="btn btn-primary" type="submit">Search</button>
+            @if (!string.IsNullOrEmpty(Model.Q) || !string.IsNullOrEmpty(status))
+            {
+                <a class="btn btn-ghost" href="@Url.Action("Newsletter", "Admin")">Clear</a>
+            }
+        </form>
+        <div class="admin-chip">@Model.TotalCount.ToString("N0") shown &middot; @Model.ActiveCount.ToString("N0") active</div>
+    </div>
+
+    <div class="row-actions" style="padding: 12px 0 4px;">
+        <a class="btn btn-mini @(string.IsNullOrEmpty(status) ? "btn-primary" : "btn-ghost")" href="@Url.Action("Newsletter", "Admin")">All</a>
+        <a class="btn btn-mini @(status == "active" ? "btn-primary" : "btn-ghost")" href="@Url.Action("Newsletter", "Admin", new { status = "active" })">Active</a>
+        <a class="btn btn-mini @(status == "inactive" ? "btn-primary" : "btn-ghost")" href="@Url.Action("Newsletter", "Admin", new { status = "inactive" })">Inactive</a>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Joined</th>
+                <th class="right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in Model.Subscribers)
+            {
+                <tr>
+                    <td><b>@s.Email</b></td>
+                    <td>
+                        @if (s.IsActive)
+                        {
+                            <span class="stock-pill green">Active</span>
+                        }
+                        else
+                        {
+                            <span class="stock-pill">Inactive</span>
+                        }
+                    </td>
+                    <td>@s.CreatedOn.ToString("dd MMM yyyy")</td>
+                    <td class="right">
+                        <div class="row-actions">
+                            <form action="@Url.Action("NewsletterToggle", "Admin", new { id = s.Id })" method="post">
+                                @Html.AntiForgeryToken()
+                                <button class="btn btn-mini @(s.IsActive ? "btn-ghost" : "btn-primary")" type="submit">@(s.IsActive ? "Unsubscribe" : "Resubscribe")</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (Model.Subscribers.Count == 0)
+    {
+        <div class="panel-empty">No subscribers found.</div>
+    }
+
+    @if (totalPages > 1)
+    {
+        <div class="pager">
+            <a class="@(Model.Page <= 1 ? "is-disabled" : "")" href="@Url.Action("Newsletter", "Admin", new { q = Model.Q, status = status, page = Model.Page - 1 })">&larr; Prev</a>
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                if (i == 1 || i == totalPages || Math.Abs(i - Model.Page) <= 2)
+                {
+                    <a class="@(i == Model.Page ? "is-current" : "")" href="@Url.Action("Newsletter", "Admin", new { q = Model.Q, status = status, page = i })">@i</a>
+                }
+                else if (Math.Abs(i - Model.Page) == 3)
+                {
+                    <span class="gap">&hellip;</span>
+                }
+            }
+            <a class="@(Model.Page >= totalPages ? "is-disabled" : "")" href="@Url.Action("Newsletter", "Admin", new { q = Model.Q, status = status, page = Model.Page + 1 })">Next &rarr;</a>
+        </div>
+    }
+</div>

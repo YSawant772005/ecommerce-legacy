@@ -268,6 +268,165 @@ namespace LegacyEcommerce.Controllers
             return View(model);
         }
 
+        public ActionResult Messages(string q, int page = 1)
+        {
+            var model = new AdminMessagesViewModel { Q = q, Page = page < 1 ? 1 : page };
+            var query = db.ContactMessages.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var term = q.Trim();
+                query = query.Where(m => m.Name.Contains(term) || m.Email.Contains(term)
+                    || (m.Topic != null && m.Topic.Contains(term)) || m.Message.Contains(term));
+            }
+
+            model.UnreadCount = db.ContactMessages.Count(m => !m.IsRead);
+            model.TotalCount = query.Count();
+            model.Messages = query
+                .OrderBy(m => m.IsRead)
+                .ThenByDescending(m => m.CreatedOn)
+                .Skip((model.Page - 1) * model.PageSize)
+                .Take(model.PageSize)
+                .ToList()
+                .Select(m => new AdminMessageRow
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    Email = m.Email,
+                    Phone = m.Phone,
+                    Topic = m.Topic,
+                    Message = m.Message,
+                    IsRead = m.IsRead,
+                    CreatedOn = m.CreatedOn
+                }).ToList();
+
+            ViewBag.Title = "Contact Messages";
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult MessageRead(int id)
+        {
+            var msg = db.ContactMessages.Find(id);
+            if (msg != null)
+            {
+                msg.IsRead = true;
+                db.SaveChanges();
+            }
+            return RedirectToAction("Messages");
+        }
+
+        public ActionResult Newsletter(string q, int page = 1, string status = null)
+        {
+            var model = new AdminNewsletterViewModel { Q = q, Page = page < 1 ? 1 : page, Status = status };
+            var query = db.NewsletterSubscribers.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var term = q.Trim();
+                query = query.Where(s => s.Email.Contains(term));
+            }
+            if (status == "active") query = query.Where(s => s.IsActive);
+            else if (status == "inactive") query = query.Where(s => !s.IsActive);
+
+            model.ActiveCount = db.NewsletterSubscribers.Count(s => s.IsActive);
+            model.TotalCount = query.Count();
+            model.Subscribers = query
+                .OrderByDescending(s => s.CreatedOn)
+                .Skip((model.Page - 1) * model.PageSize)
+                .Take(model.PageSize)
+                .ToList()
+                .Select(s => new AdminSubscriberRow
+                {
+                    Id = s.Id,
+                    Email = s.Email,
+                    IsActive = s.IsActive,
+                    CreatedOn = s.CreatedOn
+                }).ToList();
+
+            ViewBag.Title = "Newsletter Subscribers";
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult NewsletterToggle(int id)
+        {
+            var sub = db.NewsletterSubscribers.Find(id);
+            if (sub != null)
+            {
+                sub.IsActive = !sub.IsActive;
+                db.SaveChanges();
+                TempData["Message"] = sub.Email + (sub.IsActive ? " is subscribed again." : " has been unsubscribed.");
+            }
+            return RedirectToAction("Newsletter");
+        }
+
+        public ActionResult Reviews(string q, int page = 1, string status = null)
+        {
+            var model = new AdminReviewsViewModel { Q = q, Page = page < 1 ? 1 : page, Status = status };
+            var query = db.Reviews.Include("Product").AsQueryable();
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var term = q.Trim();
+                query = query.Where(r => r.AuthorName.Contains(term) || r.Body.Contains(term)
+                    || (r.Title != null && r.Title.Contains(term)) || r.Product.Name.Contains(term));
+            }
+            if (status == "hidden") query = query.Where(r => !r.IsApproved);
+            else if (status == "visible") query = query.Where(r => r.IsApproved);
+
+            model.HiddenCount = db.Reviews.Count(r => !r.IsApproved);
+            model.TotalCount = query.Count();
+            model.Reviews = query
+                .OrderByDescending(r => r.CreatedOn)
+                .Skip((model.Page - 1) * model.PageSize)
+                .Take(model.PageSize)
+                .ToList()
+                .Select(r => new AdminReviewRow
+                {
+                    Id = r.Id,
+                    AuthorName = r.AuthorName,
+                    Rating = r.Rating,
+                    Title = r.Title,
+                    Body = r.Body,
+                    VerifiedPurchase = r.VerifiedPurchase,
+                    IsApproved = r.IsApproved,
+                    CreatedOn = r.CreatedOn,
+                    ProductName = r.Product != null ? r.Product.Name : "(deleted product)",
+                    ProductSlug = r.Product != null ? r.Product.Slug : null
+                }).ToList();
+
+            ViewBag.Title = "Review Moderation";
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ReviewToggle(int id)
+        {
+            var review = db.Reviews.Find(id);
+            if (review != null)
+            {
+                review.IsApproved = !review.IsApproved;
+                db.SaveChanges();
+                TempData["Message"] = review.IsApproved ? "Review approved and visible on the product page." : "Review hidden from the product page.";
+            }
+            return RedirectToAction("Reviews");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ReviewDelete(int id)
+        {
+            var review = db.Reviews.Find(id);
+            if (review != null)
+            {
+                db.Reviews.Remove(review);
+                db.SaveChanges();
+                TempData["Message"] = "Review #" + id + " deleted.";
+            }
+            return RedirectToAction("Reviews");
+        }
+
         public ActionResult Coupons(string q, int page = 1)
         {
             var model = new AdminCouponsViewModel { Q = q, Page = page < 1 ? 1 : page };

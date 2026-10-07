@@ -81,7 +81,8 @@
 
     <div class="success-actions">
         <a class="btn btn-ghost" href="@Url.Action("Index", "Account")">&larr; Back to my orders</a>
-        <a class="btn btn-primary" href="@Url.Action("Index", "Products")">Shop again</a>
+        <a class="btn btn-primary" href="@Url.Action("Invoice", "Account", new { id = Model.OrderNumber })">Tax invoice &#9841;</a>
+        <a class="btn btn-ghost" href="@Url.Action("Index", "Products")">Shop again</a>
         @if (Model.Status == OrderStatus.Placed || Model.Status == OrderStatus.Packed)
         {
             using (Html.BeginForm("CancelOrder", "Account", FormMethod.Post, new { @class = "cancel-order-form" }))

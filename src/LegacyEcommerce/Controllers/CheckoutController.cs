@@ -42,6 +42,81 @@ namespace LegacyEcommerce.Controllers
             return model;
         }
 
+        private const string StateKey = "NK.Checkout";
+
+        private CheckoutState GetState()
+        {
+            return Session[StateKey] as CheckoutState ?? new CheckoutState();
+        }
+
+        private void SetState(CheckoutState state)
+        {
+            Session[StateKey] = state;
+        }
+
+        private CheckoutViewModel BuildAddressModel()
+        {
+            var state = GetState();
+            var model = new CheckoutViewModel
+            {
+                FullName = state.FullName,
+                Email = state.Email,
+                Phone = state.Phone,
+                AddressLine = state.AddressLine,
+                City = state.City,
+                State = state.State,
+                PostalCode = state.PostalCode,
+                SelectedAddressId = state.SelectedAddressId,
+                SaveAddress = state.SaveAddress,
+                Notes = state.Notes
+            };
+            PrefillFromRequest(model);
+            return model;
+        }
+
+        private void PrefillFromRequest(CheckoutViewModel model)
+        {
+            if (!string.IsNullOrEmpty(model.FullName)) return;
+
+            var user = Auth.FromSession(Session);
+            if (user == null) return;
+
+            var dbUser = db.Users.Find(user.Id);
+            if (dbUser != null)
+            {
+                model.FullName = dbUser.FullName;
+                model.Email = dbUser.Email;
+                model.Phone = dbUser.Phone;
+            }
+
+            var preset = db.CustomerAddresses
+                .Where(a => a.UserId == user.Id)
+                .OrderByDescending(a => a.IsDefault)
+                .ThenByDescending(a => a.CreatedOn)
+                .FirstOrDefault();
+            if (preset != null)
+            {
+                model.SelectedAddressId = preset.Id;
+                model.FullName = preset.FullName;
+                model.Phone = preset.Phone;
+                model.AddressLine = preset.AddressLine;
+                model.City = preset.City;
+                model.State = preset.State;
+                model.PostalCode = preset.PostalCode;
+            }
+        }
+
+        private void LoadAddresses(CheckoutViewModel model)
+        {
+            var user = Auth.FromSession(Session);
+            if (user == null) return;
+            model.Addresses = db.CustomerAddresses
+                .Where(a => a.UserId == user.Id)
+                .OrderByDescending(a => a.IsDefault)
+                .ThenByDescending(a => a.CreatedOn)
+                .ToList();
+        }
+
         [HttpGet]
         public ActionResult Index()
         {
@@ -52,45 +127,17 @@ namespace LegacyEcommerce.Controllers
                 return RedirectToAction("Index", "Cart");
             }
 
-            var model = new CheckoutViewModel { Cart = cart };
-            var user = Auth.FromSession(Session);
-            if (user != null)
-            {
-                var dbUser = db.Users.Find(user.Id);
-                if (dbUser != null)
-                {
-                    model.FullName = dbUser.FullName;
-                    model.Email = dbUser.Email;
-                    model.Phone = dbUser.Phone;
-                }
-
-                var addresses = db.CustomerAddresses
-                    .Where(a => a.UserId == user.Id)
-                    .OrderByDescending(a => a.IsDefault)
-                    .ThenByDescending(a => a.CreatedOn)
-                    .ToList();
-                model.Addresses = addresses;
-
-                var preset = addresses.FirstOrDefault();
-                if (preset != null)
-                {
-                    model.SelectedAddressId = preset.Id;
-                    model.FullName = preset.FullName;
-                    model.Phone = preset.Phone;
-                    model.AddressLine = preset.AddressLine;
-                    model.City = preset.City;
-                    model.State = preset.State;
-                    model.PostalCode = preset.PostalCode;
-                }
-            }
-
-            ViewBag.Title = "Checkout";
-            return View(model);
+            ViewBag.Title = "Checkout - Address";
+            ViewBag.Step = 1;
+            var model = BuildAddressModel();
+            model.Cart = cart;
+            LoadAddresses(model);
+            return View("Address", model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Index(CheckoutViewModel model)
+        public ActionResult Address(CheckoutViewModel model)
         {
             model.Cart = BuildCart();
             if (model.Cart.IsEmpty)
@@ -101,42 +148,182 @@ namespace LegacyEcommerce.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Title = "Checkout";
+                ViewBag.Title = "Checkout - Address";
+                ViewBag.Step = 1;
+                LoadAddresses(model);
+                return View("Address", model);
+            }
+
+            var state = GetState();
+            state.AddressDone = true;
+            state.SelectedAddressId = model.SelectedAddressId;
+            state.SaveAddress = model.SaveAddress;
+            state.FullName = model.FullName.Trim();
+            state.Email = model.Email.Trim();
+            state.Phone = model.Phone.Trim();
+            state.AddressLine = model.AddressLine.Trim();
+            state.City = model.City.Trim();
+            state.State = model.State.Trim();
+            state.PostalCode = model.PostalCode.Trim();
+            state.Notes = model.Notes;
+            SetState(state);
+
+            return RedirectToAction("Payment");
+        }
+
+        [HttpGet]
+        public ActionResult Payment()
+        {
+            var cart = BuildCart();
+            if (cart.IsEmpty)
+            {
+                TempData["Message"] = "Your cart is empty.";
+                return RedirectToAction("Index", "Cart");
+            }
+            var state = GetState();
+            if (!state.AddressDone) return RedirectToAction("Index");
+
+            ViewBag.Title = "Checkout - Payment";
+            ViewBag.Step = 2;
+            ViewBag.Cart = cart;
+            var model = new PaymentStepViewModel { PaymentMethod = state.PaymentMethod };
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Payment(PaymentStepViewModel model)
+        {
+            var cart = BuildCart();
+            if (cart.IsEmpty)
+            {
+                TempData["Message"] = "Your cart is empty.";
+                return RedirectToAction("Index", "Cart");
+            }
+            var state = GetState();
+            if (!state.AddressDone) return RedirectToAction("Index");
+
+            var method = (model.PaymentMethod ?? "").Trim();
+            string detail = null;
+
+            if (method == "Card")
+            {
+                var digits = new string((model.CardNumber ?? "").Where(char.IsDigit).ToArray());
+                if (digits.Length != 16)
+                {
+                    ModelState.AddModelError("CardNumber", "Card number must be 16 digits.");
+                }
+                if (string.IsNullOrWhiteSpace(model.CardName) || model.CardName.Trim().Length < 3)
+                {
+                    ModelState.AddModelError("CardName", "Name on card is required.");
+                }
+                if (model.Expiry == null || !System.Text.RegularExpressions.Regex.IsMatch(model.Expiry, @"^(0[1-9]|1[0-2])\/[0-9]{2}$"))
+                {
+                    ModelState.AddModelError("Expiry", "Use MM/YY format.");
+                }
+                if (model.Cvv == null || !System.Text.RegularExpressions.Regex.IsMatch(model.Cvv, @"^[0-9]{3,4}$"))
+                {
+                    ModelState.AddModelError("Cvv", "CVV must be 3 or 4 digits.");
+                }
+                detail = "Card ending " + digits.Substring(Math.Max(0, digits.Length - 4));
+            }
+            else if (method == "UPI")
+            {
+                if (string.IsNullOrWhiteSpace(model.UpiId) || !System.Text.RegularExpressions.Regex.IsMatch(model.UpiId.Trim(), @"^[a-zA-Z0-9._\-]{2,}@[a-zA-Z]{2,}$"))
+                {
+                    ModelState.AddModelError("UpiId", "Enter a valid UPI ID (e.g. name@okhdfc).");
+                }
+                detail = "UPI: " + model.UpiId.Trim();
+            }
+            else if (method == "COD")
+            {
+                detail = "Cash on Delivery";
+            }
+            else
+            {
+                ModelState.AddModelError("PaymentMethod", "Choose a payment method.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Title = "Checkout - Payment";
+                ViewBag.Step = 2;
+                ViewBag.Cart = cart;
                 return View(model);
             }
 
-            var sessionUser = Auth.FromSession(Session);
-            if (sessionUser != null && model.SaveAddress)
+            state.PaymentDone = true;
+            state.PaymentMethod = method;
+            state.PaymentDetail = detail;
+            SetState(state);
+
+            return RedirectToAction("Review");
+        }
+
+        [HttpGet]
+        public ActionResult Review()
+        {
+            var cart = BuildCart();
+            if (cart.IsEmpty)
             {
-                SaveAddressToBook(sessionUser.Id, model);
+                TempData["Message"] = "Your cart is empty.";
+                return RedirectToAction("Index", "Cart");
+            }
+            var state = GetState();
+            if (!state.AddressDone) return RedirectToAction("Index");
+            if (!state.PaymentDone) return RedirectToAction("Payment");
+
+            ViewBag.Title = "Checkout - Review";
+            ViewBag.Step = 3;
+            return View(new ReviewOrderViewModel { Cart = cart, State = state });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Confirm()
+        {
+            var cart = BuildCart();
+            if (cart.IsEmpty)
+            {
+                TempData["Message"] = "Your cart is empty.";
+                return RedirectToAction("Index", "Cart");
+            }
+            var state = GetState();
+            if (!state.AddressDone) return RedirectToAction("Index");
+            if (!state.PaymentDone) return RedirectToAction("Payment");
+
+            var sessionUser = Auth.FromSession(Session);
+            if (sessionUser != null && state.SaveAddress)
+            {
+                SaveAddressToBook(sessionUser.Id, state);
             }
 
-            var totals = model.Cart.Totals;
+            var totals = cart.Totals;
             var order = new Order
             {
                 OrderNumber = NextOrderNumber(),
                 UserId = sessionUser != null ? sessionUser.Id : (int?)null,
-                Email = model.Email,
-                FullName = model.FullName,
-                Phone = model.Phone,
-                AddressLine = model.AddressLine,
-                City = model.City,
-                State = model.State,
-                PostalCode = model.PostalCode,
+                Email = state.Email,
+                FullName = state.FullName,
+                Phone = state.Phone,
+                AddressLine = state.AddressLine,
+                City = state.City,
+                State = state.State,
+                PostalCode = state.PostalCode,
                 Subtotal = totals.Subtotal,
                 Discount = totals.Discount,
                 Shipping = totals.Shipping,
                 Tax = totals.Tax,
                 Total = totals.Total,
                 Status = OrderStatus.Placed,
-                PaymentMethod = model.PaymentMethod,
-                PaymentRef = model.PaymentMethod == "COD" ? null : "TXN" + DateTime.Now.ToString("yyMMddHHmm") + new Random().Next(100, 999),
+                PaymentMethod = state.PaymentMethod,
+                PaymentRef = state.PaymentMethod == "COD" ? null : "TXN" + DateTime.Now.ToString("yyMMddHHmm") + new Random().Next(100, 999),
                 CouponCode = totals.CouponValid ? totals.CouponCode : null,
                 CreatedOn = DateTime.Now,
                 Items = new List<OrderItem>()
             };
 
-            foreach (var line in model.Cart.Lines)
+            foreach (var line in cart.Lines)
             {
                 order.Items.Add(new OrderItem
                 {
@@ -169,6 +356,11 @@ namespace LegacyEcommerce.Controllers
             db.SaveChanges();
 
             SessionCart.Clear(Session);
+            if (sessionUser != null)
+            {
+                CartStore.Clear(db, sessionUser.Id);
+            }
+            Session[StateKey] = null;
             Session["NK.LastOrder"] = order.OrderNumber;
 
             return RedirectToAction("Success", new { id = order.OrderNumber });
@@ -184,7 +376,7 @@ namespace LegacyEcommerce.Controllers
             return View(order);
         }
 
-        private void SaveAddressToBook(int userId, CheckoutViewModel model)
+        private void SaveAddressToBook(int userId, CheckoutState model)
         {
             if (model.SelectedAddressId.HasValue)
             {

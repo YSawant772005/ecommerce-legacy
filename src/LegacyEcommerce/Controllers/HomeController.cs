@@ -50,6 +50,36 @@ namespace LegacyEcommerce.Controllers
             return View();
         }
 
+        public ActionResult Faq()
+        {
+            ViewBag.Title = "Frequently Asked Questions";
+            return View();
+        }
+
+        public ActionResult Privacy()
+        {
+            ViewBag.Title = "Privacy Policy";
+            return View();
+        }
+
+        public ActionResult Terms()
+        {
+            ViewBag.Title = "Terms of Service";
+            return View();
+        }
+
+        public ActionResult Shipping()
+        {
+            ViewBag.Title = "Shipping Policy";
+            return View();
+        }
+
+        public ActionResult Returns()
+        {
+            ViewBag.Title = "Returns & Refunds";
+            return View();
+        }
+
         public ActionResult Contact()
         {
             ViewBag.Title = "Contact Us";
@@ -115,6 +145,37 @@ namespace LegacyEcommerce.Controllers
             }
 
             return Redirect(referer != null && referer.Host == Request.Url.Host ? referer.PathAndQuery : fallback);
+        }
+
+        public ActionResult Unsubscribe(string email)
+        {
+            ViewBag.Title = "Unsubscribe";
+            ViewBag.Email = email == null ? "" : email.Trim();
+            var sub = string.IsNullOrWhiteSpace(email) ? null : db.NewsletterSubscribers.FirstOrDefault(n => n.Email == email.Trim());
+            ViewBag.IsSubscribed = sub != null && sub.IsActive;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Unsubscribe(NewsletterViewModel model)
+        {
+            var email = model.Email == null ? "" : model.Email.Trim();
+            var sub = db.NewsletterSubscribers.FirstOrDefault(n => n.Email == email);
+            if (sub != null && sub.IsActive)
+            {
+                sub.IsActive = false;
+                db.SaveChanges();
+                TempData["Unsubscribed"] = "You have been unsubscribed from NovaKart emails.";
+            }
+            else
+            {
+                TempData["Unsubscribed"] = "This email is not on our newsletter list.";
+            }
+            ViewBag.Title = "Unsubscribe";
+            ViewBag.Email = email;
+            ViewBag.IsSubscribed = false;
+            return View();
         }
 
         [ChildActionOnly]

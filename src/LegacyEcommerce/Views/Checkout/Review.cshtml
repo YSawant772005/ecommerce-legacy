@@ -1,0 +1,84 @@
+@model LegacyEcommerce.Models.ViewModels.ReviewOrderViewModel
+@{
+    ViewBag.Title = "Checkout - Review";
+    var step = ViewBag.Step != null ? (int)ViewBag.Step : 3;
+    var s = Model.State;
+    var t = Model.Cart.Totals;
+}
+
+<div class="container">
+    <nav class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a><span class="sep">/</span>
+        <a href="@Url.Action("Index", "Cart")">Cart</a><span class="sep">/</span><span>Checkout</span>
+    </nav>
+
+    <h1 class="page-title">Checkout</h1>
+
+    @Html.Partial("_Steps", step)
+
+    <div class="checkout-layout">
+        <div class="checkout-steps">
+            <div class="step-card rv-block">
+                <div class="step-head">
+                    <span class="step-no">1</span><h3>Deliver to</h3>
+                    <a class="rv-edit" href="@Url.Action("Index", "Checkout")">Change</a>
+                </div>
+                <div class="rv-body">
+                    <b>@s.FullName</b>
+                    <span>@s.AddressLine, @s.City, @s.State &ndash; @s.PostalCode</span>
+                    <span>@s.Phone &middot; @s.Email</span>
+                    @if (!string.IsNullOrEmpty(s.Notes))
+                    {
+                        <span class="rv-notes">Note: @s.Notes</span>
+                    }
+                </div>
+            </div>
+
+            <div class="step-card rv-block">
+                <div class="step-head">
+                    <span class="step-no">2</span><h3>Payment</h3>
+                    <a class="rv-edit" href="@Url.Action("Payment", "Checkout")">Change</a>
+                </div>
+                <div class="rv-body">
+                    <b>@(s.PaymentMethod == "COD" ? "Cash on Delivery" : (s.PaymentMethod == "UPI" ? "UPI / Wallet" : "Credit / Debit Card"))</b>
+                    <span>@s.PaymentDetail</span>
+                </div>
+            </div>
+
+            <div class="step-card rv-block">
+                <div class="step-head">
+                    <span class="step-no">3</span><h3>Items (@t.Count)</h3>
+                    <a class="rv-edit" href="@Url.Action("Index", "Cart")">Edit cart</a>
+                </div>
+                <div class="mini-lines rv-items">
+                    @foreach (var line in Model.Cart.Lines)
+                    {
+                        <div class="mini-line">
+                            <img src="@line.Product.ImageUrl" alt="@line.Product.Name" />
+                            <div class="ml-body">
+                                <b>@line.Product.Name</b>
+                                <span>Qty @line.Qty &middot; &#8377;@line.Product.Price.ToString("N0") each</span>
+                            </div>
+                            <div class="ml-price">&#8377;@line.LineTotal.ToString("N0")</div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @using (Html.BeginForm("Confirm", "Checkout", FormMethod.Post, new { @class = "checkout-form" }))
+            {
+                @Html.AntiForgeryToken()
+                <button class="btn btn-accent place-order-btn" type="submit">
+                    Confirm &amp; Place Order &mdash; &#8377;@t.Total.ToString("N0")
+                    <span class="po-sub">@(string.IsNullOrEmpty(t.CouponCode) ? "" : " (coupon " + t.CouponCode + " applied)")</span>
+                </button>
+            }
+
+            <div class="step-actions">
+                <a class="btn btn-ghost" href="@Url.Action("Payment", "Checkout")">&larr; Back to payment</a>
+            </div>
+        </div>
+
+        @Html.Partial("_Summary", Model.Cart)
+    </div>
+</div>

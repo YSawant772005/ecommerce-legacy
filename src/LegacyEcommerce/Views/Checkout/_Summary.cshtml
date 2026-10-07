@@ -1,0 +1,26 @@
+@model LegacyEcommerce.Models.ViewModels.CartViewModel
+@{
+    var t = Model.Totals;
+}
+<aside class="summary-card checkout-summary">
+    <h3>Order Summary <span>(@t.Count items)</span></h3>
+    <div class="mini-lines">
+        @foreach (var line in Model.Lines)
+        {
+            <div class="mini-line">
+                <img src="@line.Product.ImageUrl" alt="@line.Product.Name" />
+                <div class="ml-body">
+                    <b>@line.Product.Name</b>
+                    <span>Qty @line.Qty</span>
+                </div>
+                <div class="ml-price">&#8377;@line.LineTotal.ToString("N0")</div>
+            </div>
+        }
+    </div>
+    <div class="s-row"><span>Subtotal</span><b>&#8377;@t.Subtotal.ToString("N0")</b></div>
+    <div class="s-row"><span>Discount @(string.IsNullOrEmpty(t.CouponCode) ? "" : "(" + t.CouponCode + ")")</span><b class="@(t.Discount > 0 ? "green" : "")">@(t.Discount > 0 ? "\u2212\u20B9" + t.Discount.ToString("N0") : "\u20B90")</b></div>
+    <div class="s-row"><span>Delivery</span><b>@(t.Shipping == 0 ? "FREE" : "\u20B9" + t.Shipping.ToString("N0"))</b></div>
+    <div class="s-row"><span>Taxes (GST 18%)</span><b>&#8377;@t.Tax.ToString("N2")</b></div>
+    <div class="s-total"><span>Total Payable</span><b>&#8377;@t.Total.ToString("N0")</b></div>
+    <a class="edit-cart" href="@Url.Action("Index", "Cart")">&larr; Edit cart</a>
+</aside>

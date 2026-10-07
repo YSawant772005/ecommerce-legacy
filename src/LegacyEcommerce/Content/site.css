@@ -1367,6 +1367,7 @@ input, select, textarea { font-family: inherit; font-size: 15px; }
   cursor: pointer;
 }
 .newsletter button:hover { background: var(--brand-dark); }
+.newsletter-unsub { display: inline-block; margin-top: 10px; font-size: 12px; color: var(--text-light, #9ca3af); text-decoration: underline; }
 .footer-bottom {
   border-top: 1px solid #1e293b;
   padding: 18px 0;
@@ -2092,3 +2093,26 @@ span.field-validation-error {
 .mini-total b { font-size: 15px; color: var(--ink); }
 .mini-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 14px; }
 .mini-actions .btn { text-align: center; }
+
+/* ---- Multi-step checkout ---- */
+.steps-bar { display: flex; align-items: center; gap: 8px; max-width: 640px; margin: 0 0 22px; }
+.sb-item { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: #f1f5f9; color: var(--muted); font-size: 12.5px; font-weight: 600; }
+.sb-item .sb-dot { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 1.5px solid var(--line); font-size: 12px; }
+.sb-item.is-current { background: var(--brand-soft); color: var(--brand); }
+.sb-item.is-current .sb-dot { background: var(--brand); border-color: var(--brand); color: #fff; }
+.sb-item.is-done { background: #ecfdf5; color: var(--green); }
+.sb-item.is-done .sb-dot { background: var(--green); border-color: var(--green); color: #fff; }
+.sb-line { flex: 0 0 34px; height: 2px; background: var(--line); }
+.sb-line.is-done { background: var(--green); }
+.step-actions { display: flex; gap: 12px; align-items: center; margin-top: 14px; }
+.step-actions .btn { min-width: 160px; text-align: center; }
+.pay-extra { margin-top: 14px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--brand-soft); }
+.mock-note { margin-top: 10px; font-size: 12px; color: var(--muted); }
+.rv-block .step-head { display: flex; align-items: center; gap: 10px; }
+.rv-block .step-head h3 { flex: 1; }
+.rv-edit { font-size: 12.5px; font-weight: 700; color: var(--brand); text-decoration: none; }
+.rv-edit:hover { text-decoration: underline; }
+.rv-body { display: flex; flex-direction: column; gap: 3px; padding-top: 8px; font-size: 13.5px; color: var(--muted); }
+.rv-body b { color: var(--ink); font-size: 14.5px; }
+.rv-notes { margin-top: 6px; font-style: italic; color: var(--brand); }
+.rv-items { padding-top: 6px; }

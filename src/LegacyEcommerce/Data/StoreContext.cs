@@ -21,6 +21,11 @@ namespace LegacyEcommerce.Data
         public DbSet<Coupon> Coupons { get; set; }
         public DbSet<ContactMessage> ContactMessages { get; set; }
         public DbSet<NewsletterSubscriber> NewsletterSubscribers { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<UserCart> UserCarts { get; set; }
+        public DbSet<WishlistItem> WishlistItems { get; set; }
+
+        public DbSet<PasswordReset> PasswordResets { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -79,6 +84,42 @@ namespace LegacyEcommerce.Data
                 .HasRequired(a => a.User)
                 .WithMany(u => u.CustomerAddresses)
                 .HasForeignKey(a => a.UserId)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<CartItem>()
+                .HasRequired(c => c.User)
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<CartItem>()
+                .HasRequired(c => c.Product)
+                .WithMany()
+                .HasForeignKey(c => c.ProductId)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<UserCart>()
+                .HasRequired(c => c.User)
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<WishlistItem>()
+                .HasRequired(c => c.User)
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<WishlistItem>()
+                .HasRequired(c => c.Product)
+                .WithMany()
+                .HasForeignKey(c => c.ProductId)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<PasswordReset>()
+                .HasRequired(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
                 .WillCascadeOnDelete(true);
         }
     }

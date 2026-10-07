@@ -19,6 +19,11 @@ namespace LegacyEcommerce.Controllers
             base.Dispose(disposing);
         }
 
+        private void Persist()
+        {
+            CartStore.SaveIfAuthenticated(db, Session);
+        }
+
         private CartViewModel BuildModel()
         {
             var model = new CartViewModel();
@@ -81,6 +86,7 @@ namespace LegacyEcommerce.Controllers
             }
 
             SessionCart.Add(Session, id, qty);
+            Persist();
             return Json(new
             {
                 ok = true,
@@ -95,6 +101,7 @@ namespace LegacyEcommerce.Controllers
         public ActionResult Update(int id, int qty)
         {
             SessionCart.Update(Session, id, qty);
+            Persist();
             var model = BuildModel();
             return Json(new
             {
@@ -110,6 +117,7 @@ namespace LegacyEcommerce.Controllers
         public ActionResult Remove(int id)
         {
             SessionCart.Remove(Session, id);
+            Persist();
             var model = BuildModel();
             return Json(new { ok = true, count = model.Totals.Count, totals = model.Totals });
         }
@@ -118,6 +126,7 @@ namespace LegacyEcommerce.Controllers
         public ActionResult Clear()
         {
             SessionCart.Clear(Session);
+            Persist();
             return Json(new { ok = true, count = 0 });
         }
 
@@ -130,6 +139,7 @@ namespace LegacyEcommerce.Controllers
             {
                 SessionCart.SetCoupon(Session, result.Code);
             }
+            Persist();
             var refreshed = BuildModel();
             return Json(new
             {
@@ -143,6 +153,7 @@ namespace LegacyEcommerce.Controllers
         public ActionResult RemoveCoupon()
         {
             SessionCart.SetCoupon(Session, null);
+            Persist();
             var model = BuildModel();
             return Json(new { ok = true, totals = model.Totals });
         }

@@ -76,7 +76,54 @@ namespace LegacyEcommerce.Data
                 "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_Coupon_Code' AND object_id = OBJECT_ID('dbo.Coupons')) " +
                 "CREATE UNIQUE INDEX UX_Coupon_Code ON dbo.Coupons(Code)",
                 "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_CustomerAddress_UserId' AND object_id = OBJECT_ID('dbo.CustomerAddresses')) " +
-                "CREATE NONCLUSTERED INDEX IX_CustomerAddress_UserId ON dbo.CustomerAddresses(UserId)"
+                "CREATE NONCLUSTERED INDEX IX_CustomerAddress_UserId ON dbo.CustomerAddresses(UserId)",
+                "IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'UserCarts') " +
+                "CREATE TABLE dbo.UserCarts(" +
+                "Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY, " +
+                "UserId INT NOT NULL, " +
+                "CouponCode NVARCHAR(30) NULL, " +
+                "UpdatedOn DATETIME NOT NULL, " +
+                "CONSTRAINT FK_UserCarts_Users FOREIGN KEY (UserId) REFERENCES dbo.Users(Id) ON DELETE CASCADE)",
+                "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_UserCarts_UserId' AND object_id = OBJECT_ID('dbo.UserCarts')) " +
+                "CREATE UNIQUE INDEX UX_UserCarts_UserId ON dbo.UserCarts(UserId)",
+                "IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'CartItems') " +
+                "CREATE TABLE dbo.CartItems(" +
+                "Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY, " +
+                "UserId INT NOT NULL, " +
+                "ProductId INT NOT NULL, " +
+                "Qty INT NOT NULL, " +
+                "UpdatedOn DATETIME NOT NULL, " +
+                "CONSTRAINT FK_CartItems_Users FOREIGN KEY (UserId) REFERENCES dbo.Users(Id) ON DELETE CASCADE, " +
+                "CONSTRAINT FK_CartItems_Products FOREIGN KEY (ProductId) REFERENCES dbo.Products(Id) ON DELETE CASCADE)",
+                "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_CartItem_UserId' AND object_id = OBJECT_ID('dbo.CartItems')) " +
+                "CREATE NONCLUSTERED INDEX IX_CartItem_UserId ON dbo.CartItems(UserId)",
+                "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_CartItem_User_Product' AND object_id = OBJECT_ID('dbo.CartItems')) " +
+                "CREATE UNIQUE INDEX UX_CartItem_User_Product ON dbo.CartItems(UserId, ProductId)",
+                "IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'WishlistItems') " +
+                "CREATE TABLE dbo.WishlistItems(" +
+                "Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY, " +
+                "UserId INT NOT NULL, " +
+                "ProductId INT NOT NULL, " +
+                "AddedOn DATETIME NOT NULL, " +
+                "CONSTRAINT FK_WishlistItems_Users FOREIGN KEY (UserId) REFERENCES dbo.Users(Id) ON DELETE CASCADE, " +
+                "CONSTRAINT FK_WishlistItems_Products FOREIGN KEY (ProductId) REFERENCES dbo.Products(Id) ON DELETE CASCADE)",
+                "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_WishlistItem_UserId' AND object_id = OBJECT_ID('dbo.WishlistItems')) " +
+                "CREATE NONCLUSTERED INDEX IX_WishlistItem_UserId ON dbo.WishlistItems(UserId)",
+                "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_WishlistItem_User_Product' AND object_id = OBJECT_ID('dbo.WishlistItems')) " +
+                "CREATE UNIQUE INDEX UX_WishlistItem_User_Product ON dbo.WishlistItems(UserId, ProductId)",
+                "IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'PasswordResets') " +
+                "CREATE TABLE dbo.PasswordResets(" +
+                "Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY, " +
+                "UserId INT NOT NULL, " +
+                "Token NVARCHAR(64) NOT NULL, " +
+                "CreatedOn DATETIME NOT NULL, " +
+                "ExpiresOn DATETIME NOT NULL, " +
+                "UsedOn DATETIME NULL, " +
+                "CONSTRAINT FK_PasswordResets_Users FOREIGN KEY (UserId) REFERENCES dbo.Users(Id) ON DELETE CASCADE)",
+                "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_PasswordResets_Token' AND object_id = OBJECT_ID('dbo.PasswordResets')) " +
+                "CREATE UNIQUE INDEX UX_PasswordResets_Token ON dbo.PasswordResets(Token)",
+                "IF COL_LENGTH('dbo.Reviews', 'IsApproved') IS NULL " +
+                "ALTER TABLE dbo.Reviews ADD IsApproved BIT NOT NULL CONSTRAINT DF_Reviews_IsApproved DEFAULT 1"
             };
 
             foreach (var sql in statements)

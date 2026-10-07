@@ -243,6 +243,7 @@ namespace LegacyEcommerce.Data
                         Title = item.T,
                         Body = item.B,
                         VerifiedPurchase = rnd.NextDouble() < 0.72,
+                        IsApproved = true,
                         CreatedOn = p.CreatedOn.AddDays(rnd.Next(1, 240)).AddMinutes(rnd.Next(0, 1440))
                     });
                 }

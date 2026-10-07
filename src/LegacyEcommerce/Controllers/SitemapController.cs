@@ -39,6 +39,11 @@ namespace LegacyEcommerce.Controllers
             sb.AppendLine("  <url><loc>" + BaseUrl + "/products</loc><changefreq>daily</changefreq><priority>0.9</priority></url>");
             sb.AppendLine("  <url><loc>" + BaseUrl + "/home/about</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>");
             sb.AppendLine("  <url><loc>" + BaseUrl + "/home/contact</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>");
+            sb.AppendLine("  <url><loc>" + BaseUrl + "/home/faq</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>");
+            sb.AppendLine("  <url><loc>" + BaseUrl + "/home/privacy</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>");
+            sb.AppendLine("  <url><loc>" + BaseUrl + "/home/terms</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>");
+            sb.AppendLine("  <url><loc>" + BaseUrl + "/home/shipping</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>");
+            sb.AppendLine("  <url><loc>" + BaseUrl + "/home/returns</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>");
 
             var categories = CatalogCache.Categories;
             foreach (var c in categories)
@@ -47,9 +52,8 @@ namespace LegacyEcommerce.Controllers
             }
 
             var products = CatalogCache.Products
-                .Where(p => string.IsNullOrEmpty(Request.Params["full"]) ? p.SoldCount > 0 : p.Id > 0)
                 .OrderByDescending(p => p.SoldCount)
-                .Take(250);
+                .Take(45000);
             foreach (var p in products)
             {
                 sb.AppendLine("  <url><loc>" + BaseUrl + "/product/" + p.Slug + "</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>");

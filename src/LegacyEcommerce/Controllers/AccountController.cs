@@ -44,6 +44,8 @@ namespace LegacyEcommerce.Controllers
             }
 
             Auth.Login(Session, user);
+            CartStore.MergeFromDb(db, Session, user.Id);
+            WishlistStore.MergeFromDb(db, Session, user.Id);
 
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
@@ -89,6 +91,8 @@ namespace LegacyEcommerce.Controllers
             db.SaveChanges();
 
             Auth.Login(Session, user);
+            CartStore.SaveIfAuthenticated(db, Session);
+            WishlistStore.SaveIfAuthenticated(db, Session);
             TempData["Message"] = "Welcome to NovaKart, " + user.FullName + "!";
             return RedirectToAction("Index");
         }
@@ -97,7 +101,90 @@ namespace LegacyEcommerce.Controllers
         {
             Auth.Logout(Session);
             SessionCart.Clear(Session);
+            WishlistStore.ClearSession(Session);
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public ActionResult ForgotPassword()
+        {
+            if (Auth.FromSession(Session) != null) return RedirectToAction("Index");
+            ViewBag.Title = "Forgot Password";
+            return View(new ForgotPasswordViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ForgotPassword(ForgotPasswordViewModel model)
+        {
+            ViewBag.Title = "Forgot Password";
+            if (!ModelState.IsValid) return View(model);
+
+            var email = model.Email.Trim().ToLowerInvariant();
+            var user = db.Users.FirstOrDefault(u => u.Email == email);
+            if (user != null)
+            {
+                var token = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
+                db.PasswordResets.Add(new PasswordReset
+                {
+                    UserId = user.Id,
+                    Token = token,
+                    CreatedOn = DateTime.Now,
+                    ExpiresOn = DateTime.Now.AddMinutes(30)
+                });
+                db.SaveChanges();
+                ViewBag.ResetLink = Url.Action("ResetPassword", "Account", new { token = token });
+            }
+
+            ViewBag.SubmittedEmail = model.Email;
+            ViewBag.Title = "Check Your Email";
+            return View("ForgotPasswordSent");
+        }
+
+        [HttpGet]
+        public ActionResult ResetPassword(string token)
+        {
+            ViewBag.Title = "Reset Password";
+            if (FindValidReset(token) == null)
+            {
+                TempData["Message"] = "This reset link is invalid or has expired. Request a new one below.";
+                return RedirectToAction("ForgotPassword");
+            }
+            return View(new ResetPasswordViewModel { Token = token });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ResetPassword(ResetPasswordViewModel model)
+        {
+            ViewBag.Title = "Reset Password";
+            if (!ModelState.IsValid) return View(model);
+
+            var reset = FindValidReset(model.Token);
+            if (reset == null)
+            {
+                TempData["Message"] = "This reset link is invalid or has expired. Request a new one below.";
+                return RedirectToAction("ForgotPassword");
+            }
+
+            var user = db.Users.Find(reset.UserId);
+            if (user == null) return HttpNotFound();
+
+            var hash = PasswordHasher.Hash(model.NewPassword);
+            user.PasswordHash = hash.Hash;
+            user.PasswordSalt = hash.Salt;
+            reset.UsedOn = DateTime.Now;
+            db.SaveChanges();
+
+            TempData["Message"] = "Password reset successfully. Sign in with your new password.";
+            return RedirectToAction("Login");
+        }
+
+        private PasswordReset FindValidReset(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token)) return null;
+            var now = DateTime.Now;
+            return db.PasswordResets.FirstOrDefault(p => p.Token == token && p.UsedOn == null && p.ExpiresOn > now);
         }
 
         [RequireLogin]
@@ -125,6 +212,18 @@ namespace LegacyEcommerce.Controllers
             if (order == null) return HttpNotFound();
 
             ViewBag.Title = "Order " + order.OrderNumber;
+            return View(order);
+        }
+
+        [RequireLogin]
+        public ActionResult Invoice(string id)
+        {
+            var me = Auth.FromSession(Session);
+            var order = db.Orders.Include("Items")
+                .FirstOrDefault(o => o.OrderNumber == id && o.UserId == me.Id);
+            if (order == null) return HttpNotFound();
+
+            ViewBag.Title = "Invoice " + order.OrderNumber;
             return View(order);
         }
 

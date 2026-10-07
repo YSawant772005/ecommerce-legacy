@@ -1,0 +1,51 @@
+@{
+    ViewBag.Title = "Unsubscribe";
+    var email = ViewBag.Email as string;
+    var subscribed = (bool)ViewBag.IsSubscribed;
+}
+
+<div class="container narrow">
+    <nav class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a><span class="sep">/</span>
+        <span>Unsubscribe</span>
+    </nav>
+
+    <div class="static-hero">
+        <h1>Unsubscribe from emails</h1>
+        <p>We're sorry to see you go. Confirm below and we'll stop sending you newsletter updates from NovaKart.</p>
+    </div>
+
+    @if (TempData["Unsubscribed"] != null)
+    {
+        <div class="static-section">
+            <p class="inv-thanks" style="font-weight:600;">@TempData["Unsubscribed"]</p>
+            <p>You can always re-subscribe from the newsletter box in our footer, or from the Contact page.</p>
+            <a class="btn btn-primary" href="@Url.Action("Index", "Home")">Back to NovaKart</a>
+        </div>
+    }
+    else if (!subscribed)
+    {
+        <div class="static-section">
+            <p>This email address is not currently subscribed to the NovaKart newsletter.</p>
+            <a class="btn btn-primary" href="@Url.Action("Index", "Home")">Back to NovaKart</a>
+        </div>
+    }
+    else
+    {
+        using (Html.BeginForm("Unsubscribe", "Home", FormMethod.Post, new { @class = "stack-form" }))
+        {
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Email" value="@email" />
+            <div class="step-card">
+                <div class="step-head"><span class="step-no">&#10006;</span><h3>Confirm unsubscribe</h3></div>
+                <p style="margin:0;line-height:1.7;">
+                    Newsletter for <b>@email</b> will be turned off. You may rejoin anytime.
+                </p>
+                <div style="margin-top:16px;">
+                    <button type="submit" class="btn btn-primary">Unsubscribe me</button>
+                    <a class="btn btn-ghost" href="@Url.Action("Index", "Home")">Keep my subscription</a>
+                </div>
+            </div>
+        }
+    }
+</div>

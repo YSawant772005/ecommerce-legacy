@@ -1,0 +1,120 @@
+@model LegacyEcommerce.Models.ViewModels.PaymentStepViewModel
+@{
+    ViewBag.Title = "Checkout - Payment";
+    var step = ViewBag.Step != null ? (int)ViewBag.Step : 2;
+    var cart = ViewBag.Cart as LegacyEcommerce.Models.ViewModels.CartViewModel;
+}
+
+<div class="container">
+    <nav class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a><span class="sep">/</span>
+        <a href="@Url.Action("Index", "Cart")">Cart</a><span class="sep">/</span><span>Checkout</span>
+    </nav>
+
+    <h1 class="page-title">Checkout</h1>
+
+    @Html.Partial("_Steps", step)
+
+    <div class="checkout-layout">
+        <div class="checkout-steps">
+            @using (Html.BeginForm("Payment", "Checkout", FormMethod.Post, new { @class = "checkout-form", id = "paymentForm" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true, "", new { @class = "field-error summary-error" })
+
+                <div class="step-card">
+                    <div class="step-head"><span class="step-no">2</span><h3>Payment method</h3></div>
+                    <div class="pay-options">
+                        <label class="pay-opt">
+                            <input type="radio" name="PaymentMethod" value="COD" checked="@(Model.PaymentMethod == "COD" || string.IsNullOrEmpty(Model.PaymentMethod))" />
+                            <span class="po-body">
+                                <b>Cash on Delivery</b>
+                                <span>Pay when your order arrives. Fee &#8377;0.</span>
+                            </span>
+                        </label>
+                        <label class="pay-opt">
+                            <input type="radio" name="PaymentMethod" value="UPI" checked="@(Model.PaymentMethod == "UPI")" />
+                            <span class="po-body">
+                                <b>UPI / Wallet</b>
+                                <span>Google Pay, PhonePe, Paytm and more.</span>
+                            </span>
+                        </label>
+                        <label class="pay-opt">
+                            <input type="radio" name="PaymentMethod" value="Card" checked="@(Model.PaymentMethod == "Card")" />
+                            <span class="po-body">
+                                <b>Credit / Debit Card</b>
+                                <span>Visa, Mastercard, RuPay. Secured by 3D Secure.</span>
+                            </span>
+                        </label>
+                    </div>
+                    @Html.ValidationMessageFor(m => m.PaymentMethod)
+
+                    <div class="pay-extra" id="pay-upi" style="@(Model.PaymentMethod == "UPI" ? "" : "display:none;")">
+                        <div class="field">
+                            @Html.LabelFor(m => m.UpiId, "UPI ID")
+                            @Html.TextBoxFor(m => m.UpiId, new { placeholder = "name@okhdfc", @class = "upi-input" })
+                            @Html.ValidationMessageFor(m => m.UpiId)
+                        </div>
+                    </div>
+
+                    <div class="pay-extra" id="pay-card" style="@(Model.PaymentMethod == "Card" ? "" : "display:none;")">
+                        <div class="form-grid">
+                            <div class="field full">
+                                @Html.LabelFor(m => m.CardNumber, "Card number")
+                                @Html.TextBoxFor(m => m.CardNumber, new { placeholder = "1234 5678 9012 3456", maxlength = "25", @class = "card-input" })
+                                @Html.ValidationMessageFor(m => m.CardNumber)
+                            </div>
+                            <div class="field full">
+                                @Html.LabelFor(m => m.CardName, "Name on card")
+                                @Html.TextBoxFor(m => m.CardName, new { placeholder = "As printed on card" })
+                                @Html.ValidationMessageFor(m => m.CardName)
+                            </div>
+                            <div class="field">
+                                @Html.LabelFor(m => m.Expiry, "Expiry")
+                                @Html.TextBoxFor(m => m.Expiry, new { placeholder = "MM/YY", maxlength = "5" })
+                                @Html.ValidationMessageFor(m => m.Expiry)
+                            </div>
+                            <div class="field">
+                                @Html.LabelFor(m => m.Cvv, "CVV")
+                                @Html.PasswordFor(m => m.Cvv, new { placeholder = "3-4 digits", maxlength = "4" })
+                                @Html.ValidationMessageFor(m => m.Cvv)
+                            </div>
+                        </div>
+                        <div class="mock-note">Demo checkout &mdash; no real card is charged. Use any 16-digit number.</div>
+                    </div>
+                </div>
+
+                <div class="step-actions">
+                    <a class="btn btn-ghost" href="@Url.Action("Index", "Checkout")">&larr; Back</a>
+                    <button class="btn btn-accent" type="submit">Continue to Review</button>
+                </div>
+            }
+        </div>
+
+        @if (cart != null)
+        {
+            @Html.Partial("_Summary", cart)
+        }
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        (function () {
+            var form = document.getElementById('paymentForm');
+            if (!form) return;
+            var upi = document.getElementById('pay-upi');
+            var card = document.getElementById('pay-card');
+            function sync() {
+                var picked = form.querySelector('input[name="PaymentMethod"]:checked');
+                var v = picked ? picked.value : '';
+                if (upi) upi.style.display = (v === 'UPI') ? '' : 'none';
+                if (card) card.style.display = (v === 'Card') ? '' : 'none';
+            }
+            form.addEventListener('change', function (e) {
+                if (e.target && e.target.name === 'PaymentMethod') sync();
+            });
+            sync();
+        })();
+    </script>
+}
