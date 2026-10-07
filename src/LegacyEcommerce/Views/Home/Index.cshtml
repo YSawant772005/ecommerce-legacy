@@ -1,0 +1,143 @@
+@model LegacyEcommerce.Models.ViewModels.HomeViewModel
+@{
+    ViewBag.Title = "NovaKart - Online Shopping for Electronics, Fashion, Home & More";
+    var picks = Model.Featured.Take(4).ToList();
+}
+<section class="hero">
+    <div class="container hero-inner">
+        <div class="hero-copy">
+            <h1>Everything you love,<br /><em>delivered fast.</em></h1>
+            <p>Over @Model.ProductCount.ToString("N0") products across electronics, fashion, home, books and more. Genuine brands, honest prices and 15-day easy returns.</p>
+            <div class="hero-cta">
+                <a class="btn btn-accent" href="@Url.Action("Index", "Products")">Shop All Products</a>
+                <a class="btn btn-ghost" href="@Url.Action("Index", "Products", new { sort = "discount", mode = "pages" })">Explore Deals</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat"><b>@Model.ProductCount.ToString("N0")+</b><span>Products live</span></div>
+                <div class="stat"><b>@Model.BrandCount+</b><span>Trusted brands</span></div>
+                <div class="stat"><b>@Model.CustomerCount.ToString("N0")+</b><span>Happy shoppers</span></div>
+                <div class="stat"><b>@Model.OrderCount.ToString("N0")+</b><span>Orders delivered</span></div>
+            </div>
+        </div>
+        <div class="hero-art">
+            @foreach (var p in picks)
+            {
+                <a class="tile" href="@Url.Action("Details", "Products", new { slug = p.Slug })">
+                    <img src="@p.ImageUrl" alt="@p.Name" />
+                    <div class="t-name">@p.Name</div>
+                    <div class="t-price">&#8377;@p.Price.ToString("N0")</div>
+                </a>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="trust-strip">
+    <div class="container trust-grid">
+        <div class="trust-item">
+            <div class="t-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="14" height="11" rx="2"></rect><path d="M15 10h4l3 3v4h-7z"></path><circle cx="6" cy="18.5" r="1.8"></circle><circle cx="17.5" cy="18.5" r="1.8"></circle></svg></div>
+            <div><b>Free &amp; fast delivery</b><span>On orders above &#8377;999</span></div>
+        </div>
+        <div class="trust-item">
+            <div class="t-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg></div>
+            <div><b>15-day easy returns</b><span>No questions asked</span></div>
+        </div>
+        <div class="trust-item">
+            <div class="t-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3.5v6c0 5-3.4 8.9-8 10.5-4.6-1.6-8-5.5-8-10.5v-6z"></path><path d="M8.5 12l2.5 2.5 5-5.5"></path></svg></div>
+            <div><b>100% secure payments</b><span>UPI, cards &amp; COD</span></div>
+        </div>
+        <div class="trust-item">
+            <div class="t-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-3a8 8 0 0 1 16 0v3"></path><rect x="2.5" y="13.5" width="4" height="6" rx="2"></rect><rect x="17.5" y="13.5" width="4" height="6" rx="2"></rect><path d="M19.5 19.5a3 3 0 0 1-3 3H13"></path></svg></div>
+            <div><b>24/7 support</b><span>We are always around</span></div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="section-head">
+            <div>
+                <h2>Shop by category</h2>
+                <p>Twelve curated departments, thousands of picks.</p>
+            </div>
+            <a class="link-arrow" href="@Url.Action("Index", "Products")">View all &rarr;</a>
+        </div>
+        <div class="category-rail">
+            @foreach (var c in Model.Categories)
+            {
+                <a class="cat-card" href="@Url.Action("Index", "Products", new { slug = c.Slug })">
+                    <img src="@c.ImageUrl" alt="@c.Name" loading="lazy" />
+                    <b>@c.Name</b>
+                    <span>@c.Tagline</span>
+                </a>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="section" style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line);">
+    <div class="container">
+        <div class="section-head">
+            <div>
+                <h2>&#9733; Trending right now</h2>
+                <p>Bestselling products our shoppers keep coming back for.</p>
+            </div>
+            <a class="link-arrow" href="@Url.Action("Index", "Products", new { sort = "popular" })">See more &rarr;</a>
+        </div>
+        <div class="product-grid">
+            @foreach (var p in Model.Featured)
+            {
+                @Html.Partial("_ProductCard", p)
+            }
+        </div>
+    </div>
+</section>
+
+@if (Model.Deals.Count > 0)
+{
+    <section class="section">
+        <div class="container">
+            <div class="section-head">
+                <div>
+                    <h2>&#128293; Deal of the day</h2>
+                    <p>Limited-time prices across top categories.</p>
+                </div>
+                <a class="link-arrow" href="@Url.Action("Index", "Products", new { sort = "discount", mode = "pages" })">All deals &rarr;</a>
+            </div>
+            <div class="product-grid">
+                @foreach (var p in Model.Deals)
+                {
+                    @Html.Partial("_ProductCard", p)
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<section class="section" style="background:#fff;border-top:1px solid var(--line);">
+    <div class="container">
+        <div class="section-head">
+            <div>
+                <h2>Just landed</h2>
+                <p>Fresh arrivals added this week.</p>
+            </div>
+            <a class="link-arrow" href="@Url.Action("Index", "Products", new { sort = "new" })">New in &rarr;</a>
+        </div>
+        <div class="product-grid">
+            @foreach (var p in Model.NewArrivals)
+            {
+                @Html.Partial("_ProductCard", p)
+            }
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container" style="background:linear-gradient(120deg,#0f172a,#312e81);border-radius:22px;padding:44px 40px;color:#e0e7ff;display:flex;gap:26px;align-items:center;justify-content:space-between;flex-wrap:wrap;">
+        <div>
+            <h2 style="color:#fff;margin:0 0 8px;font-size:clamp(22px,3vw,30px);letter-spacing:-.7px;">Members save more with <span style="color:#fbbf24;">SAVE10</span></h2>
+            <p style="margin:0;max-width:620px;">Use code SAVE10 at checkout for 10% off (up to &#8377;500) on orders above &#8377;999. Stack it with free delivery on qualifying carts.</p>
+        </div>
+        <a class="btn btn-accent" href="@Url.Action("Index", "Products")">Start shopping</a>
+    </div>
+</section>

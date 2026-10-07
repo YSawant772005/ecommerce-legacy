@@ -1,0 +1,73 @@
+@model LegacyEcommerce.Models.ViewModels.AdminCustomersViewModel
+@{
+    ViewBag.Title = "Customers";
+    int totalPages = Model.TotalPages;
+}
+
+<div class="panel">
+    <div class="panel-head">
+        <form class="inline-search" action="@Url.Action("Customers", "Admin")" method="get">
+            <input type="search" name="q" value="@Model.Q" placeholder="Search name, email or phone..." />
+            <button class="btn btn-primary" type="submit">Search</button>
+            @if (!string.IsNullOrEmpty(Model.Q))
+            {
+                <a class="btn btn-ghost" href="@Url.Action("Customers", "Admin")">Clear</a>
+            }
+        </form>
+        <div class="count-chip">@Model.TotalCount.ToString("N0") customers</div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Customer</th>
+                <th>Contact</th>
+                <th>Joined</th>
+                <th class="right">Orders</th>
+                <th class="right">Total spent</th>
+                <th class="right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in Model.Customers)
+            {
+                <tr>
+                    <td><b>@c.FullName</b><div class="t-sub">#@c.Id</div></td>
+                    <td>@c.Email<div class="t-sub">@(string.IsNullOrEmpty(c.Phone) ? "no phone" : c.Phone)</div></td>
+                    <td>@c.CreatedOn.ToString("dd MMM yyyy")</td>
+                    <td class="right">@c.OrderCount.ToString("N0")</td>
+                    <td class="right"><b>&#8377;@c.TotalSpent.ToString("N0")</b></td>
+                    <td class="right">
+                        <div class="row-actions">
+                            <a class="btn btn-mini btn-ghost" href="@Url.Action("Orders", "Admin", new { q = c.Email })">View orders</a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (Model.Customers.Count == 0)
+    {
+        <div class="panel-empty">No customers found.</div>
+    }
+
+    @if (totalPages > 1)
+    {
+        <div class="pager">
+            <a class="@(Model.Page <= 1 ? "is-disabled" : "")" href="@Url.Action("Customers", "Admin", new { q = Model.Q, page = Model.Page - 1 })">&larr; Prev</a>
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                if (i == 1 || i == totalPages || Math.Abs(i - Model.Page) <= 2)
+                {
+                    <a class="@(i == Model.Page ? "is-current" : "")" href="@Url.Action("Customers", "Admin", new { q = Model.Q, page = i })">@i</a>
+                }
+                else if (Math.Abs(i - Model.Page) == 3)
+                {
+                    <span class="gap">&hellip;</span>
+                }
+            }
+            <a class="@(Model.Page >= totalPages ? "is-disabled" : "")" href="@Url.Action("Customers", "Admin", new { q = Model.Q, page = Model.Page + 1 })">Next &rarr;</a>
+        </div>
+    }
+</div>

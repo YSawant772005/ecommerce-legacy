@@ -1,0 +1,250 @@
+@model LegacyEcommerce.Models.ViewModels.ProductDetailViewModel
+@{
+    ViewBag.Title = Model.Product.Name;
+    var p = Model.Product;
+    var gallery = new List<string>();
+    if (!string.IsNullOrWhiteSpace(p.ImageUrl))
+    {
+        gallery.Add(p.ImageUrl);
+    }
+    if (!string.IsNullOrWhiteSpace(p.ImageUrl2))
+    {
+        gallery.Add(p.ImageUrl2);
+    }
+    if (!string.IsNullOrWhiteSpace(p.ImageUrl3))
+    {
+        gallery.Add(p.ImageUrl3);
+    }
+    if (gallery.Count == 0)
+    {
+        gallery.Add(Url.Content("~/Content/images/" + p.Category.Slug + "-v1.svg"));
+    }
+    var wish = Context.Session["NK.Wishlist"] as List<int> ?? new List<int>();
+    var wished = wish.Contains(p.Id);
+    var sessionUser = Auth.FromSession(Context.Session);
+    var openTab = ViewBag.Tab as string;
+}
+
+<div class="container">
+    <nav class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a><span class="sep">/</span>
+        <a href="@Url.Action("Index", "Products")">Products</a><span class="sep">/</span>
+        <a href="@Url.Action("Index", "Products", new { slug = p.Category.Slug })">@p.Category.Name</a><span class="sep">/</span>
+        <span>@p.Name</span>
+    </nav>
+
+    <div class="pdp-layout">
+        <div class="pdp-gallery">
+            <div class="thumbs" id="thumbs">
+                @foreach (var g in gallery)
+                {
+                    <button type="button" class="thumb @(g == gallery[0] ? "is-on" : "")"><img src="@g" alt="@p.Name" /></button>
+                }
+            </div>
+            <div class="main-image" id="mainImage">
+                <img src="@gallery[0]" alt="@p.Name" />
+            </div>
+            <div class="pdp-actions">
+                @if (p.InStock)
+                {
+                    <button class="btn btn-accent" type="button" data-add="@p.Id">Add to Cart</button>
+                    <button class="btn btn-primary" type="button" data-buy="@p.Id">Buy Now</button>
+                }
+                else
+                {
+                    <button class="btn btn-ghost" type="button" disabled>Out of Stock</button>
+                }
+                <button class="wish-btn @(wished ? "is-on" : "")" data-wish="@p.Id" title="Add to wishlist">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 21s-7.5-4.7-9.7-9C.7 8.7 2.6 5 6.2 5c2.2 0 3.7 1.2 4.6 2.6h2.4C14.1 6.2 15.6 5 17.8 5c3.6 0 5.5 3.7 3.9 7-2.2 4.3-9.7 9-9.7 9z"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="pdp-info">
+            <div class="pdp-brand">@p.Brand.Name</div>
+            <h1>@p.Name</h1>
+            <div class="pdp-rating">
+                @Html.Stars(p.Rating, p.RatingCount)
+                <span>@p.Rating.ToString("0.0") · @p.RatingCount.ToString("N0") ratings</span>
+                @if (p.SoldCount > 0) { <span class="sold">@p.SoldCount.ToString("N0")+ bought</span> }
+            </div>
+
+            <div class="pdp-price">
+                @Html.Price(p.Price)
+                @if (p.ComparePrice.HasValue)
+                {
+                    @Html.Price(p.ComparePrice.Value, true)
+                    <span class="price-off">@p.DiscountPercent% off</span>
+                }
+                <span class="tax-note">inclusive of all taxes</span>
+            </div>
+
+            <div class="pdp-row">
+                <b>Availability:</b>
+                @if (p.InStock)
+                {
+                    <span class="in-stock">In Stock</span>
+                }
+                else
+                {
+                    <span class="out-stock">Out of stock</span>
+                }
+            </div>
+
+            @if (!string.IsNullOrEmpty(p.Colors))
+            {
+                <div class="pdp-row"><b>Color:</b><span>@p.Colors</span></div>
+            }
+            @if (!string.IsNullOrEmpty(p.Sizes))
+            {
+                <div class="pdp-row"><b>Size:</b><span>@p.Sizes</span></div>
+            }
+
+            <p class="pdp-desc">@p.Description</p>
+
+            <ul class="pdp-usp">
+                <li>Free delivery on orders above &#8377;999</li>
+                <li>15-day easy returns &amp; replacement</li>
+                <li>1-year brand warranty on this item</li>
+                <li>Cash on delivery available</li>
+            </ul>
+
+            <div class="pdp-meta">
+                <div><b>SKU:</b> @p.Sku</div>
+                <div><b>Category:</b> <a href="@Url.Action("Index", "Products", new { slug = p.Category.Slug })">@p.Category.Name</a></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pdp-tabs" id="pdpTabs">
+        <div class="tab-head">
+            <button class="is-on" data-tab="desc">Description</button>
+            <button data-tab="specs">Specifications</button>
+            <button data-tab="reviews">Reviews (@Model.Reviews.Count)</button>
+        </div>
+
+        <div class="tab-pane is-on" id="tab-desc">
+            <p>@p.Description</p>
+            <p>Every @p.Brand.Name product on NovaKart is sourced from authorised distributors and quality-checked before dispatch. Orders placed before 4 PM ship the same day.</p>
+        </div>
+
+        <div class="tab-pane" id="tab-specs">
+            <table class="spec-table">
+                <tr><th>Brand</th><td>@p.Brand.Name</td></tr>
+                <tr><th>Category</th><td>@p.Category.Name</td></tr>
+                <tr><th>SKU</th><td>@p.Sku</td></tr>
+                <tr><th>Availability</th><td>@(p.InStock ? "In Stock" : "Out of Stock")</td></tr>
+                <tr><th>Delivery</th><td>Free above &#8377;999, else &#8377;49</td></tr>
+                <tr><th>Returns</th><td>15-day easy returns</td></tr>
+                @if (!string.IsNullOrWhiteSpace(p.Colors))
+                {
+                    <tr><th>Colors</th><td>@p.Colors</td></tr>
+                }
+                @if (!string.IsNullOrWhiteSpace(p.Sizes))
+                {
+                    <tr><th>Sizes</th><td>@p.Sizes</td></tr>
+                }
+                @if (!string.IsNullOrWhiteSpace(p.Highlights))
+                {
+                    <tr><th>Highlights</th><td>@p.Highlights</td></tr>
+                }
+            </table>
+        </div>
+
+        <div class="tab-pane" id="tab-reviews">
+            <div class="reviews-head">
+                <div class="big-score">@p.Rating.ToString("0.0")<span>/ 5</span></div>
+                <div>@Html.Stars(p.Rating) <b>@p.RatingCount.ToString("N0") ratings</b></div>
+            </div>
+
+            <div class="review-form-card">
+                @if (sessionUser == null)
+                {
+                    <p class="muted" style="margin:0;">
+                        <a href="@Url.Action("Login", "Account", new { returnUrl = Url.Action("Details", "Products", new { slug = p.Slug }) })">Sign in</a> to share what you think about this product.
+                    </p>
+                }
+                else
+                {
+                    using (Html.BeginForm("ReviewPost", "Products", FormMethod.Post, new { @class = "review-form", id = "reviewForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="ProductId" value="@p.Id" />
+                        <div class="rf-top">
+                            <b>Write a review</b>
+                            <span class="muted">Your rating helps other shoppers.</span>
+                        </div>
+                        <div class="star-rate" role="radiogroup" aria-label="Rating">
+                            <input type="radio" name="Rating" value="5" id="star5" checked /><label for="star5" title="5 stars">&#9733;</label>
+                            <input type="radio" name="Rating" value="4" id="star4" /><label for="star4" title="4 stars">&#9733;</label>
+                            <input type="radio" name="Rating" value="3" id="star3" /><label for="star3" title="3 stars">&#9733;</label>
+                            <input type="radio" name="Rating" value="2" id="star2" /><label for="star2" title="2 stars">&#9733;</label>
+                            <input type="radio" name="Rating" value="1" id="star1" /><label for="star1" title="1 star">&#9733;</label>
+                        </div>
+                        <div class="field">
+                            <label for="Title">Your review headline</label>
+                            <input type="text" name="Title" id="Title" maxlength="200" placeholder="e.g. Great sound, amazing battery life" />
+                        </div>
+                        <div class="field">
+                            <label for="Body">What did you like or dislike?</label>
+                            <textarea name="Body" id="Body" rows="4" maxlength="2000" placeholder="Share your experience with this product..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit review</button>
+                    }
+                }
+            </div>
+
+            @if (Model.Reviews.Count > 0)
+            {
+                <div class="review-list">
+                    @foreach (var r in Model.Reviews.Take(8))
+                    {
+                        <div class="review">
+                            <div class="r-top">
+                                <span class="r-avatar">@(r.AuthorName == null ? "?" : r.AuthorName.Substring(0, 1).ToUpper())</span>
+                                <div><b>@r.AuthorName</b><span class="r-date">@r.CreatedOn.ToString("dd MMM yyyy")</span></div>
+                                <span class="r-rating">@Html.Stars(r.Rating)</span>
+                            </div>
+                            <div class="r-title">@r.Title</div>
+                            <p class="r-text">@r.Body</p>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="muted">No reviews yet. Be the first to review this product.</p>
+            }
+        </div>
+    </div>
+
+    @if (Model.Related.Count > 0)
+    {
+        <section class="section" style="padding-left:0;padding-right:0;">
+            <div class="section-head">
+                <div><h2>You may also like</h2><p>Picked from @p.Category.Name</p></div>
+            </div>
+            <div class="product-grid">
+                @foreach (var r in Model.Related)
+                {
+                    @Html.Partial("_ProductCard", r)
+                }
+            </div>
+        </section>
+    }
+
+    @Html.Partial("_RecentlyViewed")
+</div>
+
+@section scripts {
+    <script src="@Url.Content("~/Scripts/pdp.js")"></script>
+    @if (openTab == "reviews")
+    {
+        <script>
+            (function () {
+                var tab = document.querySelector('#pdpTabs [data-tab="reviews"]');
+                if (tab) tab.click();
+            })();
+        </script>
+    }
+}

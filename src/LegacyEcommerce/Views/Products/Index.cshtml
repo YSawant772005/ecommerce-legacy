@@ -1,0 +1,194 @@
+@model LegacyEcommerce.Models.ViewModels.CatalogViewModel
+@{
+    ViewBag.Title = Model.Title ?? "Products";
+    var brandParam = string.Join(",", Model.BrandSlugs);
+    int totalPages = Model.TotalPages;
+    var pageList = Model.PageNumbers;
+}
+
+<div class="container">
+    <nav class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a><span class="sep">/</span>
+        <a href="@Url.Action("Index", "Products")">Products</a>
+        @if (!string.IsNullOrEmpty(Model.CategoryName))
+        {
+            <span class="sep">/</span><span>@Model.CategoryName</span>
+        }
+        @if (!string.IsNullOrEmpty(Model.Q))
+        {
+            <span class="sep">/</span><span>Search: @Model.Q</span>
+        }
+    </nav>
+
+    <div class="page-head">
+        <div>
+            <h1>@Model.Title</h1>
+            <div class="count">
+                @if (Model.TotalCount == 0)
+                {
+                    <span>No products found</span>
+                }
+                else
+                {
+                    <span>Showing @Model.From&ndash;@Model.To of @Model.TotalCount.ToString("N0") products</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <label for="sortSel">Sort by</label>
+        <select class="select" id="sortSel">
+            <option value="popular" selected="@(Model.Sort == "popular")">Popularity</option>
+            <option value="new" selected="@(Model.Sort == "new")">Newest first</option>
+            <option value="rating" selected="@(Model.Sort == "rating")">Customer rating</option>
+            <option value="price-asc" selected="@(Model.Sort == "price-asc")">Price: Low to High</option>
+            <option value="price-desc" selected="@(Model.Sort == "price-desc")">Price: High to Low</option>
+            <option value="discount" selected="@(Model.Sort == "discount")">Biggest discount</option>
+        </select>
+
+        <label for="sizeSel">Show</label>
+        <select class="select" id="sizeSel">
+            <option value="12" selected="@(Model.PageSize == 12)">12</option>
+            <option value="24" selected="@(Model.PageSize == 24)">24</option>
+            <option value="48" selected="@(Model.PageSize == 48)">48</option>
+        </select>
+
+        <div class="spacer"></div>
+
+        <div class="mode-toggle" title="Listing style">
+            <button type="button" id="modeScroll" class="is-on">Infinite scroll</button>
+            <button type="button" id="modePages">Pages</button>
+        </div>
+    </div>
+
+    @if (string.IsNullOrEmpty(Model.Q) && string.IsNullOrEmpty(Model.CategoryName) && Model.BrandSlugs.Count == 0 && !Model.MinPrice.HasValue && !Model.MaxPrice.HasValue)
+    {
+        @Html.Partial("_RecentlyViewed")
+    }
+
+    <div class="catalog-layout">
+        <aside class="filters" id="filterPanel">
+            <div class="f-head">
+                <b>Filters</b>
+                <a class="f-clear" href="@Url.Action("Index", "Products", new { slug = Model.CategorySlug, q = Model.Q })">Clear all</a>
+            </div>
+            <form class="f-body" action="@Url.Action("Index", "Products")" method="get" id="filterForm">
+                <input type="hidden" name="slug" value="@Model.CategorySlug" />
+                <input type="hidden" name="q" value="@Model.Q" />
+                <input type="hidden" name="sort" value="@Model.Sort" />
+                <input type="hidden" name="pageSize" value="@Model.PageSize" />
+                <input type="hidden" name="mode" value="@Model.Mode" />
+
+                <div class="f-group">
+                    <h4>Category</h4>
+                    @foreach (var c in Model.Categories)
+                    {
+                        int cnt = Model.CategoryCounts.ContainsKey(c.Slug) ? Model.CategoryCounts[c.Slug] : 0;
+                        <a class="f-option" href="@Url.Action("Index", "Products", new { slug = c.Slug, q = Model.Q, sort = Model.Sort, pageSize = Model.PageSize, mode = Model.Mode })">
+                            <span style="@(Model.CategorySlug == c.Slug ? "color:var(--brand);font-weight:700;" : "")">@c.Name</span>
+                            <span class="f-count">@cnt.ToString("N0")</span>
+                        </a>
+                    }
+                </div>
+
+                <div class="f-group">
+                    <h4>Price (&#8377;)</h4>
+                    <div class="f-price-row">
+                        <input type="number" name="min" min="0" step="50" placeholder="Min @(Model.PriceFloor.ToString("N0"))" value="@(Model.MinPrice.HasValue ? Model.MinPrice.Value.ToString("0") : "")" />
+                        <span>&ndash;</span>
+                        <input type="number" name="max" min="0" step="50" placeholder="Max @(Model.PriceCeil.ToString("N0"))" value="@(Model.MaxPrice.HasValue ? Model.MaxPrice.Value.ToString("0") : "")" />
+                    </div>
+                </div>
+
+                <div class="f-group">
+                    <h4>Brand</h4>
+                    @foreach (var b in Model.Brands.Take(14))
+                    {
+                        var isOn = Model.BrandSlugs.Contains(b.Slug);
+                        <label class="f-option">
+                            <input type="checkbox" name="brand" value="@b.Slug" checked="@(isOn)" />
+                            <span>@b.Name</span>
+                        </label>
+                    }
+                    @if (Model.Brands.Count > 14)
+                    {
+                        <div style="font-size:12.5px;color:var(--muted);margin-top:8px;">+@(Model.Brands.Count - 14) more brands match your filters</div>
+                    }
+                </div>
+
+                <div class="f-group">
+                    <h4>Customer rating</h4>
+                    <div class="rating-filters">
+                        @foreach (var r in new[] { 4.5, 4.0, 3.5, 3.0 })
+                        {
+                            <label class="f-option">
+                                <input type="radio" name="rating" value="@r.ToString(System.Globalization.CultureInfo.InvariantCulture)" checked="@(Model.MinRating.HasValue && Math.Abs(Model.MinRating.Value - r) < 0.01)" />
+                                <span>@Html.Stars(r) &amp; above</span>
+                            </label>
+                        }
+                    </div>
+                </div>
+
+                <div class="f-group">
+                    <button class="btn btn-primary apply-btn" type="submit">Apply Filters</button>
+                </div>
+            </form>
+        </aside>
+
+        <div class="results" id="catalog"
+             data-more-url="@Url.Action("More", "Products", new { slug = Model.CategorySlug, q = Model.Q, sort = Model.Sort, brand = brandParam, min = Model.MinPrice, max = Model.MaxPrice, rating = Model.MinRating, pageSize = Model.PageSize })"
+             data-mode="@Model.Mode"
+             data-page="@Model.Page"
+             data-totalpages="@totalPages">
+            @if (Model.TotalCount == 0)
+            {
+                <div class="results-empty">
+                    <b>Nothing matched those filters</b>
+                    Try clearing filters or searching a different keyword.
+                    <div style="margin-top:18px;">
+                        <a class="btn btn-primary" href="@Url.Action("Index", "Products")">Browse all products</a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="product-grid" id="productGrid">
+                    @Html.Partial("_ProductGrid", Model.Products)
+                </div>
+
+                <div class="results-foot">
+                    <div class="showing" id="showingLabel">Showing @Model.From&ndash;@Model.To of @Model.TotalCount.ToString("N0") products</div>
+
+                    <div class="pager" id="classicPager">
+                        <a class="@(Model.Page <= 1 ? "is-disabled" : "")" href="@Url.Action("Index", "Products", new { slug = Model.CategorySlug, q = Model.Q, sort = Model.Sort, brand = brandParam, min = Model.MinPrice, max = Model.MaxPrice, rating = Model.MinRating, page = Model.Page - 1, pageSize = Model.PageSize, mode = Model.Mode })">&larr; Prev</a>
+                        @foreach (var p in pageList)
+                        {
+                            if (p == 0)
+                            {
+                                <span class="gap">&hellip;</span>
+                            }
+                            else
+                            {
+                                <a class="@(p == Model.Page ? "is-current" : "")" href="@Url.Action("Index", "Products", new { slug = Model.CategorySlug, q = Model.Q, sort = Model.Sort, brand = brandParam, min = Model.MinPrice, max = Model.MaxPrice, rating = Model.MinRating, page = p, pageSize = Model.PageSize, mode = Model.Mode })">@p</a>
+                            }
+                        }
+                        <a class="@(Model.Page >= totalPages ? "is-disabled" : "")" href="@Url.Action("Index", "Products", new { slug = Model.CategorySlug, q = Model.Q, sort = Model.Sort, brand = brandParam, min = Model.MinPrice, max = Model.MaxPrice, rating = Model.MinRating, page = Model.Page + 1, pageSize = Model.PageSize, mode = Model.Mode })">Next &rarr;</a>
+                    </div>
+
+                    <div class="load-more-wrap" id="loadMoreWrap">
+                        <button class="btn btn-ghost" type="button" id="loadMoreBtn" data-page="@Model.Page">Load more products</button>
+                        <div class="loader" id="gridLoader"></div>
+                        <div class="load-more-hint">Scroll down and we will keep loading automatically.</div>
+                    </div>
+
+                    <div id="scrollSentinel"></div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="@Url.Content("~/Scripts/catalog.js")"></script>
+}

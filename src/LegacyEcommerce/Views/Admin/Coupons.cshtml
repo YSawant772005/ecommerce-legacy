@@ -1,0 +1,119 @@
+@model LegacyEcommerce.Models.ViewModels.AdminCouponsViewModel
+@{
+    ViewBag.Title = "Manage Coupons";
+    int totalPages = Model.TotalPages;
+}
+
+<div class="panel">
+    <div class="panel-head">
+        <form class="inline-search" action="@Url.Action("Coupons", "Admin")" method="get">
+            <input type="search" name="q" value="@Model.Q" placeholder="Search code or description..." />
+            <button class="btn btn-primary" type="submit">Search</button>
+            @if (!string.IsNullOrEmpty(Model.Q))
+            {
+                <a class="btn btn-ghost" href="@Url.Action("Coupons", "Admin")">Clear</a>
+            }
+        </form>
+        <div class="count-chip">@Model.TotalCount.ToString("N0") coupons</div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Description</th>
+                <th>Discount</th>
+                <th>Min order</th>
+                <th>Validity</th>
+                <th>Uses</th>
+                <th>Status</th>
+                <th class="right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in Model.Coupons)
+            {
+                var state = "active";
+                if (!c.IsActive)
+                {
+                    state = "off";
+                }
+                else if (c.EndsOn.HasValue && DateTime.Now > c.EndsOn.Value)
+                {
+                    state = "off";
+                }
+                <tr>
+                    <td><b>@c.Code</b></td>
+                    <td class="t-sub">@c.Description</td>
+                    <td>
+                        @if (c.FixedAmount.HasValue)
+                        {
+                            <text>&#8377;@c.FixedAmount.Value.ToString("N0") off</text>
+                        }
+                        else if (c.PercentDiscount.HasValue)
+                        {
+                            <text>@c.PercentDiscount.Value.ToString("N0")% off</text>
+                        }
+                        else
+                        {
+                            <text>&mdash;</text>
+                        }
+                        @if (c.FreeShipping)
+                        {
+                            <div class="t-sub">+ free delivery</div>
+                        }
+                    </td>
+                    <td>&#8377;@c.MinOrderValue.ToString("N0")</td>
+                    <td>
+                        @c.StartsOn.ToString("dd MMM yyyy")
+                        @if (c.EndsOn.HasValue)
+                        {
+                            <text>&rarr; @c.EndsOn.Value.ToString("dd MMM yyyy")</text>
+                        }
+                        else
+                        {
+                            <div class="t-sub">no expiry</div>
+                        }
+                    </td>
+                    <td>@c.TotalUses.ToString("N0")</td>
+                    <td><span class="status status-@state">@(state == "active" ? "Active" : "Inactive")</span></td>
+                    <td class="right">
+                        <div class="row-actions">
+                            <a class="btn btn-mini btn-ghost" href="@Url.Action("CouponEdit", "Admin", new { id = c.Id })">Edit</a>
+                            @using (Html.BeginForm("CouponDelete", "Admin", FormMethod.Post, new { @class = "inline-form", onsubmit = "return confirm('Delete coupon ' + '@c.Code' + '?');" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.Hidden("id", c.Id)
+                                <button class="btn btn-mini btn-danger" type="submit">Delete</button>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (Model.Coupons.Count == 0)
+    {
+        <div class="panel-empty">No coupons found. Create one to offer your customers a discount.</div>
+    }
+
+    @if (totalPages > 1)
+    {
+        <div class="pager">
+            <a class="@(Model.Page <= 1 ? "is-disabled" : "")" href="@Url.Action("Coupons", "Admin", new { q = Model.Q, page = Model.Page - 1 })">&larr; Prev</a>
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                if (i == 1 || i == totalPages || Math.Abs(i - Model.Page) <= 2)
+                {
+                    <a class="@(i == Model.Page ? "is-current" : "")" href="@Url.Action("Coupons", "Admin", new { q = Model.Q, page = i })">@i</a>
+                }
+                else if (Math.Abs(i - Model.Page) == 3)
+                {
+                    <span class="gap">&hellip;</span>
+                }
+            }
+            <a class="@(Model.Page >= totalPages ? "is-disabled" : "")" href="@Url.Action("Coupons", "Admin", new { q = Model.Q, page = Model.Page + 1 })">Next &rarr;</a>
+        </div>
+    }
+</div>

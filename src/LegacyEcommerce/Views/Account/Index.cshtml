@@ -1,0 +1,57 @@
+@model LegacyEcommerce.Controllers.AccountOverview
+@{
+    ViewBag.Title = "My Account";
+    var me = Model.User;
+}
+
+<div class="container">
+    <nav class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a><span class="sep">/</span><span>My Account</span>
+    </nav>
+
+    <div class="account-layout">
+        @Html.Partial("_AccountSidebar", Model.User)
+
+        <div class="account-main">
+            <div class="page-head" id="orders">
+                <div>
+                    <h1>My Orders</h1>
+                    <div class="count">@(Model.Orders == null ? 0 : Model.Orders.Count) recent orders</div>
+                </div>
+            </div>
+
+            @if (Model.Orders == null || Model.Orders.Count == 0)
+            {
+                <div class="results-empty">
+                    <b>No orders yet</b>
+                    When you place an order it shows up here with live tracking.
+                    <div style="margin-top:18px;">
+                        <a class="btn btn-primary" href="@Url.Action("Index", "Products")">Start shopping</a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="order-list">
+                    @foreach (var o in Model.Orders)
+                    {
+                        <a class="order-card" href="@Url.Action("Order", "Account", new { id = o.OrderNumber })">
+                            <div class="oc-main">
+                                <div class="oc-top">
+                                    <b>@o.OrderNumber</b>
+                                    <span class="status status-@o.Status.ToString().ToLowerInvariant()">@o.Status</span>
+                                </div>
+                                <div class="oc-sub">Placed on @o.CreatedOn.ToString("dd MMM yyyy") &middot; @o.Items.Count items &middot; @o.PaymentMethod</div>
+                                <div class="oc-addr">@o.AddressLine, @o.City</div>
+                            </div>
+                            <div class="oc-total">
+                                <b>&#8377;@o.Total.ToString("N0")</b>
+                                <span>View details &rarr;</span>
+                            </div>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

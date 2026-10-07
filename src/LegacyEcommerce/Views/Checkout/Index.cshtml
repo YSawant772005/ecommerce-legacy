@@ -1,0 +1,170 @@
+@model LegacyEcommerce.Models.ViewModels.CheckoutViewModel
+@{
+    ViewBag.Title = "Checkout";
+    var t = Model.Cart.Totals;
+    var auth = Auth.FromSession(Context.Session);
+}
+
+<div class="container">
+    <nav class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a><span class="sep">/</span>
+        <a href="@Url.Action("Index", "Cart")">Cart</a><span class="sep">/</span><span>Checkout</span>
+    </nav>
+
+    <h1 class="page-title">Checkout</h1>
+
+    @using (Html.BeginForm("Index", "Checkout", FormMethod.Post, new { @class = "checkout-form", id = "checkoutForm" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "field-error summary-error" })
+
+        <div class="checkout-layout">
+            <div class="checkout-steps">
+                <div class="step-card">
+                    <div class="step-head"><span class="step-no">1</span><h3>Contact &amp; delivery address</h3></div>
+
+                    @if (Model.Addresses.Count > 0)
+                    {
+                        <div class="checkout-addresses">
+                            <div class="addr-new-note">Saved addresses &mdash; select to pre-fill</div>
+                            @foreach (var a in Model.Addresses)
+                            {
+                                <label class="addr-sel">
+                                    <input type="radio" name="addressPick" value="@a.Id"
+                                           data-fill
+                                           data-name="@a.FullName" data-phone="@a.Phone"
+                                           data-address="@a.AddressLine" data-city="@a.City"
+                                           data-state="@a.State" data-pin="@a.PostalCode"
+                                           checked="@(Model.SelectedAddressId == a.Id)" />
+                                    <span class="as-body">
+                                        <b>@a.FullName @(a.IsDefault ? "(Default)" : "")</b>
+                                        <span>@a.AddressLine, @a.City, @a.State &ndash; @a.PostalCode &middot; @a.Phone</span>
+                                    </span>
+                                </label>
+                            }
+                        </div>
+                    }
+
+                    <div class="form-grid">
+                        <div class="field">
+                            @Html.LabelFor(m => m.FullName, "Full name")
+                            @Html.TextBoxFor(m => m.FullName, new { placeholder = "e.g. Rohan Deshmukh" })
+                            @Html.ValidationMessageFor(m => m.FullName)
+                        </div>
+                        <div class="field">
+                            @Html.LabelFor(m => m.Email, "Email")
+                            @Html.TextBoxFor(m => m.Email, new { type = "email", placeholder = "you@example.com" })
+                            @Html.ValidationMessageFor(m => m.Email)
+                        </div>
+                        <div class="field">
+                            @Html.LabelFor(m => m.Phone, "Phone")
+                            @Html.TextBoxFor(m => m.Phone, new { placeholder = "10-digit mobile number" })
+                            @Html.ValidationMessageFor(m => m.Phone)
+                        </div>
+                        <div class="field full">
+                            @Html.LabelFor(m => m.AddressLine, "Address")
+                            @Html.TextBoxFor(m => m.AddressLine, new { placeholder = "Flat / house no, street, area" })
+                            @Html.ValidationMessageFor(m => m.AddressLine)
+                        </div>
+                        <div class="field">
+                            @Html.LabelFor(m => m.City, "City")
+                            @Html.TextBoxFor(m => m.City, new { placeholder = "City" })
+                            @Html.ValidationMessageFor(m => m.City)
+                        </div>
+                        <div class="field">
+                            @Html.LabelFor(m => m.State, "State")
+                            @Html.TextBoxFor(m => m.State, new { placeholder = "State" })
+                            @Html.ValidationMessageFor(m => m.State)
+                        </div>
+                        <div class="field">
+                            @Html.LabelFor(m => m.PostalCode, "PIN code")
+                            @Html.TextBoxFor(m => m.PostalCode, new { placeholder = "6-digit PIN" })
+                            @Html.ValidationMessageFor(m => m.PostalCode)
+                        </div>
+                    </div>
+
+                    @if (auth != null)
+                    {
+                        @Html.HiddenFor(m => m.SelectedAddressId)
+                        <label class="checkout-save">
+                            @Html.CheckBoxFor(m => m.SaveAddress)
+                            <span>Save this address to my address book</span>
+                        </label>
+                    }
+                </div>
+
+                <div class="step-card">
+                    <div class="step-head"><span class="step-no">2</span><h3>Payment method</h3></div>
+                    <div class="pay-options">
+                        <label class="pay-opt">
+                            <input type="radio" name="PaymentMethod" value="COD" checked="@(Model.PaymentMethod == "COD" || string.IsNullOrEmpty(Model.PaymentMethod))" />
+                            <span class="po-body">
+                                <b>Cash on Delivery</b>
+                                <span>Pay when your order arrives. Fee &#8377;0.</span>
+                            </span>
+                        </label>
+                        <label class="pay-opt">
+                            <input type="radio" name="PaymentMethod" value="UPI" checked="@(Model.PaymentMethod == "UPI")" />
+                            <span class="po-body">
+                                <b>UPI / Wallet</b>
+                                <span>Google Pay, PhonePe, Paytm and more.</span>
+                            </span>
+                        </label>
+                        <label class="pay-opt">
+                            <input type="radio" name="PaymentMethod" value="Card" checked="@(Model.PaymentMethod == "Card")" />
+                            <span class="po-body">
+                                <b>Credit / Debit Card</b>
+                                <span>Visa, Mastercard, RuPay. Secured by 3D Secure.</span>
+                            </span>
+                        </label>
+                    </div>
+                    @Html.ValidationMessageFor(m => m.PaymentMethod)
+                </div>
+
+                <div class="step-card">
+                    <div class="step-head"><span class="step-no">3</span><h3>Order notes <small>(optional)</small></h3></div>
+                    @Html.TextAreaFor(m => m.Notes, new { placeholder = "Delivery instructions, landmark, gate code...", rows = "3" })
+                </div>
+
+                <button class="btn btn-accent place-order-btn" type="submit">
+                    Place Order &mdash; &#8377;@t.Total.ToString("N0")
+                    <span class="po-sub">@(string.IsNullOrEmpty(t.CouponCode) ? "" : " (coupon " + t.CouponCode + " applied)")</span>
+                </button>
+
+                @if (auth == null)
+                {
+                    <div class="guest-note">
+                        Checking out as a guest. <a href="@Url.Action("Login", "Account")">Sign in</a> to track orders and earn rewards.
+                    </div>
+                }
+            </div>
+
+            <aside class="summary-card checkout-summary">
+                <h3>Order Summary <span>(@t.Count items)</span></h3>
+                <div class="mini-lines">
+                    @foreach (var line in Model.Cart.Lines)
+                    {
+                        <div class="mini-line">
+                            <img src="@line.Product.ImageUrl" alt="@line.Product.Name" />
+                            <div class="ml-body">
+                                <b>@line.Product.Name</b>
+                                <span>Qty @line.Qty</span>
+                            </div>
+                            <div class="ml-price">&#8377;@line.LineTotal.ToString("N0")</div>
+                        </div>
+                    }
+                </div>
+                <div class="s-row"><span>Subtotal</span><b>&#8377;@t.Subtotal.ToString("N0")</b></div>
+                <div class="s-row"><span>Discount @(string.IsNullOrEmpty(t.CouponCode) ? "" : "(" + t.CouponCode + ")")</span><b class="@(t.Discount > 0 ? "green" : "")">@(t.Discount > 0 ? "\u2212\u20B9" + t.Discount.ToString("N0") : "\u20B90")</b></div>
+                <div class="s-row"><span>Delivery</span><b>@(t.Shipping == 0 ? "FREE" : "\u20B9" + t.Shipping.ToString("N0"))</b></div>
+                <div class="s-row"><span>Taxes (GST 18%)</span><b>&#8377;@t.Tax.ToString("N2")</b></div>
+                <div class="s-total"><span>Total Payable</span><b>&#8377;@t.Total.ToString("N0")</b></div>
+                <a class="edit-cart" href="@Url.Action("Index", "Cart")">&larr; Edit cart</a>
+            </aside>
+        </div>
+    }
+</div>
+
+@section scripts {
+    <script src="~/Scripts/checkout.js"></script>
+}

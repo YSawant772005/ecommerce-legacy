@@ -1,0 +1,76 @@
+@model LegacyEcommerce.Models.ViewModels.AddressViewModel
+@{
+    ViewBag.Title = ViewBag.FormAction == "AddressEdit" ? "Edit Address" : "Add Address";
+    var action = (string)ViewBag.FormAction;
+}
+<div class="container">
+    <nav class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a><span class="sep">/</span>
+        <a href="@Url.Action("Index", "Account")">My Account</a><span class="sep">/</span>
+        <a href="@Url.Action("Addresses", "Account")">My Addresses</a><span class="sep">/</span><span>@(action == "AddressEdit" ? "Edit" : "Add")</span>
+    </nav>
+
+    <div class="account-layout">
+        @Html.Partial("_AccountSidebar", (LegacyEcommerce.Models.User)ViewData["User"])
+
+        <div class="account-main">
+            @using (Html.BeginForm(action, "Account", FormMethod.Post, new { @class = "checkout-form" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.Id)
+                @Html.ValidationSummary(true, "", new { @class = "field-error summary-error" })
+
+                <div class="step-card">
+                    <div class="step-head"><span class="step-no">&#8962;</span><h3>@(action == "AddressEdit" ? "Edit address" : "New address")</h3></div>
+                    <div class="form-grid">
+                        <div class="field">
+                            @Html.LabelFor(m => m.FullName, "Receiver name")
+                            @Html.TextBoxFor(m => m.FullName, new { placeholder = "e.g. Rohan Deshmukh" })
+                            @Html.ValidationMessageFor(m => m.FullName)
+                        </div>
+                        <div class="field">
+                            @Html.LabelFor(m => m.Phone, "Phone")
+                            @Html.TextBoxFor(m => m.Phone, new { placeholder = "10-digit mobile number" })
+                            @Html.ValidationMessageFor(m => m.Phone)
+                        </div>
+                        <div class="field full">
+                            @Html.LabelFor(m => m.AddressLine, "Address")
+                            @Html.TextBoxFor(m => m.AddressLine, new { placeholder = "Flat / house no, street, area" })
+                            @Html.ValidationMessageFor(m => m.AddressLine)
+                        </div>
+                        <div class="field">
+                            @Html.LabelFor(m => m.City, "City")
+                            @Html.TextBoxFor(m => m.City, new { placeholder = "City" })
+                            @Html.ValidationMessageFor(m => m.City)
+                        </div>
+                        <div class="field">
+                            @Html.LabelFor(m => m.State, "State")
+                            @Html.TextBoxFor(m => m.State, new { placeholder = "State" })
+                            @Html.ValidationMessageFor(m => m.State)
+                        </div>
+                        <div class="field">
+                            @Html.LabelFor(m => m.PostalCode, "PIN code")
+                            @Html.TextBoxFor(m => m.PostalCode, new { placeholder = "6-digit PIN" })
+                            @Html.ValidationMessageFor(m => m.PostalCode)
+                        </div>
+                        <div class="field">
+                            @Html.LabelFor(m => m.Country, "Country")
+                            @Html.TextBoxFor(m => m.Country, new { placeholder = "India" })
+                            @Html.ValidationMessageFor(m => m.Country)
+                        </div>
+                    </div>
+
+                    <label class="checkout-save" style="margin-top:16px;">
+                        @Html.CheckBoxFor(m => m.IsDefault)
+                        <span>Make this my default delivery address</span>
+                    </label>
+                </div>
+
+                <div class="success-actions">
+                    <a class="btn btn-ghost" href="@Url.Action("Addresses", "Account")">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save address</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>

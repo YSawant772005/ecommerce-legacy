@@ -1,0 +1,83 @@
+@model LegacyEcommerce.Controllers.AdminOrdersViewModel
+@{
+    ViewBag.Title = "Manage Orders";
+    var statuses = new[] { "Placed", "Packed", "Shipped", "Delivered", "Cancelled" };
+    int totalPages = Model.TotalPages;
+}
+
+<div class="panel">
+    <div class="panel-head">
+        <form class="inline-search" action="@Url.Action("Orders", "Admin")" method="get">
+            <input type="search" name="q" value="@Model.Q" placeholder="Search order no, customer or email..." />
+            <select class="select" name="status">
+                <option value="">All statuses</option>
+                @foreach (var s in statuses)
+                {
+                    <option value="@s" selected="@(Model.Status == s)">@s</option>
+                }
+            </select>
+            <button class="btn btn-primary" type="submit">Filter</button>
+            @if (!string.IsNullOrEmpty(Model.Q) || !string.IsNullOrEmpty(Model.Status))
+            {
+                <a class="btn btn-ghost" href="@Url.Action("Orders", "Admin")">Clear</a>
+            }
+        </form>
+        <div class="count-chip">@Model.TotalCount.ToString("N0") orders</div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th class="right">Total</th>
+                <th class="right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var o in Model.Orders)
+            {
+                <tr>
+                    <td><b>@o.OrderNumber</b><div class="t-sub">@o.CreatedOn.ToString("dd MMM yyyy, hh:mm tt")</div></td>
+                    <td>@o.FullName<div class="t-sub">@o.Email</div></td>
+                    <td>@(o.Items != null ? o.Items.Count : 0)</td>
+                    <td>@o.PaymentMethod<div class="t-sub">@(string.IsNullOrEmpty(o.CouponCode) ? "no coupon" : o.CouponCode)</div></td>
+                    <td><span class="status status-@o.Status.ToString().ToLowerInvariant()">@o.Status</span></td>
+                    <td class="right"><b>&#8377;@o.Total.ToString("N0")</b></td>
+                    <td class="right">
+                        <div class="row-actions">
+                            <a class="btn btn-mini btn-ghost" href="@Url.Action("OrderDetails", "Admin", new { id = o.Id })">Open</a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (Model.Orders.Count == 0)
+    {
+        <div class="panel-empty">No orders match your filters.</div>
+    }
+
+    @if (totalPages > 1)
+    {
+        <div class="pager">
+            <a class="@(Model.Page <= 1 ? "is-disabled" : "")" href="@Url.Action("Orders", "Admin", new { q = Model.Q, status = Model.Status, page = Model.Page - 1 })">&larr; Prev</a>
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                if (i == 1 || i == totalPages || Math.Abs(i - Model.Page) <= 2)
+                {
+                    <a class="@(i == Model.Page ? "is-current" : "")" href="@Url.Action("Orders", "Admin", new { q = Model.Q, status = Model.Status, page = i })">@i</a>
+                }
+                else if (Math.Abs(i - Model.Page) == 3)
+                {
+                    <span class="gap">&hellip;</span>
+                }
+            }
+            <a class="@(Model.Page >= totalPages ? "is-disabled" : "")" href="@Url.Action("Orders", "Admin", new { q = Model.Q, status = Model.Status, page = Model.Page + 1 })">Next &rarr;</a>
+        </div>
+    }
+</div>

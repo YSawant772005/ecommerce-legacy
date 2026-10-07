@@ -1,0 +1,13 @@
+@{
+    ViewBag.Title = "Access denied";
+}
+<div class="container narrow">
+    <div class="results-empty" style="margin-top:60px;">
+        <b>403 - Access denied</b>
+        You need to be signed in with the right permissions to view this page.
+        <div style="margin-top:18px;display:flex;gap:10px;justify-content:center;">
+            <a class="btn btn-primary" href="@Url.Action("Login", "Account")">Sign in</a>
+            <a class="btn btn-ghost" href="@Url.Action("Index", "Home")">Go home</a>
+        </div>
+    </div>
+</div>

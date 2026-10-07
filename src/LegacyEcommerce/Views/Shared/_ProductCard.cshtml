@@ -1,0 +1,58 @@
+@model LegacyEcommerce.Models.Product
+@{
+    var wish = Context.Session["NK.Wishlist"] as List<int> ?? new List<int>();
+    var wished = wish.Contains(Model.Id);
+    var detailsUrl = Url.Action("Details", "Products", new { slug = Model.Slug });
+}
+<article class="card" data-id="@Model.Id">
+    <div class="card-badges">
+        @if (!Model.InStock)
+        {
+            <span class="chip chip-out">Sold out</span>
+        }
+        else if (Model.IsDeal && Model.DiscountPercent >= 15)
+        {
+            <span class="chip chip-deal">@Model.DiscountPercent% off</span>
+        }
+        @if (Model.InStock && !Model.IsDeal && Model.IsNew)
+        {
+            <span class="chip chip-new">New</span>
+        }
+        @if (Model.SoldCount > 6000)
+        {
+            <span class="chip chip-best">Bestseller</span>
+        }
+    </div>
+
+    <button type="button" class="wish-btn @(wished ? "is-on" : "")" data-wish="@Model.Id" aria-label="Add to wishlist">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 21s-7.5-4.7-9.7-9C.7 8.7 2.6 5 6.2 5c2.2 0 3.7 1.2 4.6 2.6h2.4C14.1 6.2 15.6 5 17.8 5c3.6 0 5.5 3.7 3.9 7-2.2 4.3-9.7 9-9.7 9z"></path></svg>
+    </button>
+
+    <a class="card-media" href="@detailsUrl">
+        <img src="@Model.ImageUrl" alt="@Model.Name" loading="lazy" />
+    </a>
+
+    <div class="card-body">
+        <div class="card-brand">@Model.Brand.Name</div>
+        <a class="card-title" href="@detailsUrl">@Model.Name</a>
+        <div class="card-rating">@Html.Stars(Model.Rating, Model.RatingCount)</div>
+        <div class="card-price">
+            @Html.Price(Model.Price)
+            @if (Model.ComparePrice.HasValue)
+            {
+                @Html.Price(Model.ComparePrice.Value, true)
+                <span class="price-off">@Model.DiscountPercent% off</span>
+            }
+        </div>
+        <div class="card-cta">
+            @if (Model.InStock)
+            {
+                <button type="button" class="btn btn-cart-add" data-add="@Model.Id">Add to Cart</button>
+            }
+            else
+            {
+                <button type="button" class="btn btn-ghost" disabled>Out of Stock</button>
+            }
+        </div>
+    </div>
+</article>

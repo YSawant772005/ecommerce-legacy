@@ -1,0 +1,13 @@
+@{
+    ViewBag.Title = "Something went wrong";
+}
+<div class="container narrow">
+    <div class="results-empty" style="margin-top:60px;">
+        <b>Oops - something broke on our side</b>
+        The request could not be completed. Please try again or head back to the homepage.
+        <div style="margin-top:18px;display:flex;gap:10px;justify-content:center;">
+            <a class="btn btn-primary" href="@Url.Action("Index", "Home")">Go home</a>
+            <a class="btn btn-ghost" href="@Url.Action("Index", "Products")">Browse products</a>
+        </div>
+    </div>
+</div>

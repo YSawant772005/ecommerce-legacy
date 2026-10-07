@@ -1,0 +1,177 @@
+@{
+    var me = Auth.FromSession(Context.Session);
+    var cartCount = SessionCart.Count(Context.Session);
+    var wishList = Context.Session["NK.Wishlist"] as List<int> ?? new List<int>();
+    var wishCount = wishList.Count;
+    var categories = CatalogCache.Categories;
+    var title = ViewBag.Title != null ? ViewBag.Title + " | NovaKart" : "NovaKart - Online Shopping";
+    var isAdmin = me != null && me.Role == "Admin";
+    var metaDesc = ViewBag.MetaDescription != null ? (string)ViewBag.MetaDescription : "NovaKart - shop electronics, fashion, home, books and more with fast delivery and easy returns.";
+    var canonical = ViewBag.Canonical != null ? (string)ViewBag.Canonical : null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@title</title>
+    <meta name="description" content="@metaDesc" />
+    <meta property="og:title" content="@title" />
+    <meta property="og:type" content="website" />
+    <meta property="og:description" content="@metaDesc" />
+    <meta name="robots" content="index,follow" />
+    @if (canonical != null)
+    {
+        <link rel="canonical" href="@canonical" />
+    }
+    <link rel="icon" type="image/svg+xml" href="@Url.Content("~/Content/favicon.svg")" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/site.css")" />
+    <meta name="robots" content="index,follow" />
+</head>
+<body>
+    <div class="promo-bar">
+        Free delivery above &#8377;999 <span>&bull;</span> Extra 10% off with code <b>SAVE10</b> <span>&bull;</span> Easy 15-day returns
+    </div>
+
+    <header class="site-header" id="siteHeader">
+        <div class="header-main container">
+            <a class="logo" href="@Url.Action("Index", "Home")">Nova<span>Kart</span><i class="logo-dot"></i></a>
+
+            <div class="search-wrap">
+                <form class="search-form" action="@Url.Action("Index", "Products")" method="get" id="searchForm" role="search">
+                    <input type="search" id="searchInput" name="q" value="@Request["q"]" placeholder="Search for products, brands and categories" autocomplete="off" aria-label="Search products" />
+                    <button class="search-btn" type="submit">
+                        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+                        Search
+                    </button>
+                </form>
+                <div class="suggest-box" id="suggestBox" hidden></div>
+            </div>
+
+            <nav class="header-actions">
+                @if (me == null)
+                {
+                    <a class="action-item" href="@Url.Action("Login", "Account")">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path></svg>
+                        <span class="lbl">Sign in</span>
+                    </a>
+                }
+                else
+                {
+                    <div class="user-menu">
+                        <a class="action-item" href="@Url.Action("Index", "Account")">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path></svg>
+                            <span class="lbl">Hi @me.Name.Split(' ')[0]</span>
+                        </a>
+                        <div class="dropdown">
+                            <div class="dd-head"><b>@me.Name</b>@me.Email</div>
+                            <a href="@Url.Action("Index", "Account")">My Account</a>
+                            <a href="@Url.Action("Index", "Account")#orders">My Orders</a>
+                            <a href="@Url.Action("Index", "Wishlist")">Wishlist</a>
+                            @if (isAdmin)
+                            {
+                                <a href="@Url.Action("Dashboard", "Admin")">Admin Dashboard</a>
+                            }
+                            <a href="@Url.Action("Logout", "Account")">Sign out</a>
+                        </div>
+                    </div>
+                }
+
+                <a class="action-item" href="@Url.Action("Index", "Wishlist")">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 21s-7.5-4.7-9.7-9C.7 8.7 2.6 5 6.2 5c2.2 0 3.7 1.2 4.6 2.6h2.4C14.1 6.2 15.6 5 17.8 5c3.6 0 5.5 3.7 3.9 7-2.2 4.3-9.7 9-9.7 9z"></path></svg>
+                    <span class="badge @(wishCount == 0 ? "is-empty" : "")" id="wishCount">@wishCount</span>
+                </a>
+
+                <div class="user-menu">
+                    <a class="action-item" href="@Url.Action("Index", "Cart")">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.4l2.3 11.2a1.8 1.8 0 0 0 1.8 1.4h8.6a1.8 1.8 0 0 0 1.8-1.4L21 8H6.2"></path><circle cx="9.5" cy="20" r="1.4"></circle><circle cx="17.5" cy="20" r="1.4"></circle></svg>
+                        <span class="badge @(cartCount == 0 ? "is-empty" : "")" id="cartCount">@cartCount</span>
+                    </a>
+                    <div class="dropdown dd-cart">
+                        @Html.Action("MiniCart", "Cart")
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <nav class="cat-nav">
+            <div class="container cat-nav-inner">
+                <a class="all" href="@Url.Action("Index", "Products")">All Products</a>
+                @foreach (var c in categories)
+                {
+                    <a href="@Url.Action("Index", "Products", new { slug = c.Slug })">@c.Name</a>
+                }
+                <a class="deal-link" href="@Url.Action("Index", "Products", new { sort = "discount", mode = "pages" })">&#9733; Deals of the Day</a>
+            </div>
+        </nav>
+    </header>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="flash-bar">
+            <div class="container">@TempData["Message"]</div>
+        </div>
+    }
+
+    <main>
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-top">
+            <div class="footer-brand">
+                <a class="logo" href="@Url.Action("Index", "Home")">Nova<span>Kart</span></a>
+                <p>Your one-stop shop for electronics, fashion, home essentials, books and more. Quality products, honest prices, doorstep delivery across India.</p>
+                <div class="pay-badges">
+                    <span>UPI</span><span>VISA</span><span>Mastercard</span><span>RuPay</span><span>COD</span>
+                </div>
+            </div>
+            <div>
+                <h5>Shop</h5>
+                <ul>
+                    @foreach (var c in categories.Take(6))
+                    {
+                        <li><a href="@Url.Action("Index", "Products", new { slug = c.Slug })">@c.Name</a></li>
+                    }
+                    <li><a href="@Url.Action("Index", "Products", new { sort = "new" })">New Arrivals</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5>Customer Care</h5>
+                <ul>
+                    <li><a href="@Url.Action("Index", "Account")">My Account</a></li>
+                    <li><a href="@Url.Action("Index", "Cart")">My Cart</a></li>
+                    <li><a href="@Url.Action("Index", "Wishlist")">Wishlist</a></li>
+                    <li><a href="@Url.Action("Login", "Account")">Track Orders</a></li>
+                    <li><a href="@Url.Action("Register", "Account")">New Registration</a></li>
+                    <li><a href="@Url.Action("About", "Home")">About us</a></li>
+                    <li><a href="@Url.Action("Contact", "Home")">Contact us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5>Stay in the loop</h5>
+                <p>Get drop alerts, restock news and members-only offers straight to your inbox.</p>
+                @if (TempData["NewsletterMsg"] != null)
+                {
+                    <div class="newsletter-msg">@TempData["NewsletterMsg"]</div>
+                }
+                <form class="newsletter" action="@Url.Action("Newsletter", "Home")" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="email" name="Email" placeholder="you@example.com" required aria-label="Email address" />
+                    <button type="submit">Join</button>
+                </form>
+            </div>
+        </div>
+        <div class="container footer-bottom">
+            <div>&copy; @DateTime.Now.Year NovaKart Commerce. Built as a .NET Framework 4.7 MVC class project.</div>
+            <div>Privacy &middot; Terms &middot; Shipping &middot; Returns</div>
+        </div>
+    </footer>
+
+    <div class="toast-root" id="toastRoot"></div>
+
+    <script>window.__CART_COUNT__ = @cartCount;</script>
+    <script src="@Url.Content("~/Scripts/site.js")"></script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

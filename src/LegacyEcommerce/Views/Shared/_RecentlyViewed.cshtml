@@ -1,0 +1,32 @@
+@{
+    var recentProds = ViewBag.RecentlyProducts as List<LegacyEcommerce.Models.Product>;
+}
+
+@if (recentProds != null && recentProds.Count > 0)
+{
+    <section class="section" style="padding-left:0;padding-right:0;">
+        <div class="section-head">
+            <div><h2>Recently viewed</h2><p>Picked up where you left off</p></div>
+            <a class="all" href="@Url.Action("Index", "Products")">View all</a>
+        </div>
+        <div class="recent-row">
+            @foreach (var r in recentProds)
+            {
+                <a class="recent-card" href="@Url.Action("Details", "Products", new { slug = r.Slug })">
+                    <div class="recent-img">
+                        <img loading="lazy" src="@r.ImageUrl" alt="@r.Name" onerror="this.src='/Content/images/placeholder.svg'" />
+                    </div>
+                    <div class="recent-body">
+                        <div class="recent-name">@r.Name</div>
+                        <div class="recent-price">&#8377;@r.Price.ToString("N0")
+                            @if (r.ComparePrice.HasValue && r.ComparePrice.Value > r.Price)
+                            {
+                                <s>&#8377;@r.ComparePrice.Value.ToString("N0")</s>
+                            }
+                        </div>
+                    </div>
+                </a>
+            }
+        </div>
+    </section>
+}

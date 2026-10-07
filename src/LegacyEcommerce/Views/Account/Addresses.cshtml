@@ -1,0 +1,70 @@
+@model System.Collections.Generic.List<LegacyEcommerce.Models.CustomerAddress>
+@{
+    ViewBag.Title = "My Addresses";
+}
+<div class="container">
+    <nav class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a><span class="sep">/</span>
+        <a href="@Url.Action("Index", "Account")">My Account</a><span class="sep">/</span><span>My Addresses</span>
+    </nav>
+
+    <div class="account-layout">
+        @Html.Partial("_AccountSidebar", (LegacyEcommerce.Models.User)ViewData["User"])
+
+        <div class="account-main">
+            <div class="page-head" style="align-items:center;">
+                <div>
+                    <h1>My Addresses</h1>
+                    <div class="count">@Model.Count saved</div>
+                </div>
+                <a class="btn btn-primary" href="@Url.Action("AddressCreate", "Account")">+ Add address</a>
+            </div>
+
+            @if (Model.Count == 0)
+            {
+                <div class="results-empty addr-empty">
+                    <b>No saved addresses</b>
+                    <span>Save a delivery address once and it is pre-filled at checkout.</span>
+                    <div style="margin-top:18px;">
+                        <a class="btn btn-primary" href="@Url.Action("AddressCreate", "Account")">Add your first address</a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="addr-grid">
+                    @foreach (var a in Model)
+                    {
+                        <div class="addr-card @(a.IsDefault ? "is-default" : "")">
+                            <div class="ac-top">
+                                <b>@a.FullName</b>
+                                @if (a.IsDefault) { <span class="ac-tag">Default</span> }
+                            </div>
+                            <div class="ac-addr">
+                                @a.AddressLine<br />@a.City, @a.State &ndash; @a.PostalCode<br />@a.Country &middot; @a.Phone
+                            </div>
+                            <div class="ac-actions">
+                                @if (!a.IsDefault)
+                                {
+                                    using (Html.BeginForm("AddressDefault", "Account", FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@a.Id" />
+                                        <button type="submit" class="btn btn-ghost btn-sm">Set default</button>
+                                    }
+                                }
+                                <a class="btn btn-ghost btn-sm" href="@Url.Action("AddressEdit", "Account", new { id = a.Id })">Edit</a>
+                                using (Html.BeginForm("AddressDelete", "Account", FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@a.Id" />
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Remove this address?');">Delete</button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

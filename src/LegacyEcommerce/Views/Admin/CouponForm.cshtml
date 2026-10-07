@@ -1,0 +1,75 @@
+@model LegacyEcommerce.Models.ViewModels.CouponViewModel
+@{
+    ViewBag.Title = Model.IsNew ? "Add Coupon" : "Edit Coupon";
+}
+
+<div class="panel">
+    @using (Html.BeginForm(Model.IsNew ? "CouponCreate" : "CouponEdit", "Admin", FormMethod.Post, new { @class = "stack-form" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(m => m.Id)
+        @Html.ValidationSummary(true, "", new { @class = "field-error summary-error" })
+
+        <div class="form-section">
+            <h3>Basics</h3>
+            <div class="form-grid">
+                <div class="field">
+                    @Html.LabelFor(m => m.Code, "Coupon code")
+                    @Html.TextBoxFor(m => m.Code, new { placeholder = "e.g. SAVE10", style = "text-transform:uppercase" })
+                    @Html.ValidationMessageFor(m => m.Code)
+                </div>
+                <div class="field">
+                    @Html.LabelFor(m => m.Description, "Description shown to customers")
+                    @Html.TextBoxFor(m => m.Description, new { placeholder = "10% off up to Rs 500 on orders above Rs 999" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Discount</h3>
+            <div class="form-grid">
+                <div class="field">
+                    @Html.LabelFor(m => m.FixedAmount, "Fixed amount off (INR)")
+                    @Html.TextBoxFor(m => m.FixedAmount, new { type = "number", step = "1", min = "0", placeholder = "e.g. 50" })
+                </div>
+                <div class="field">
+                    @Html.LabelFor(m => m.PercentDiscount, "Percent off (leave blank for fixed)")
+                    @Html.TextBoxFor(m => m.PercentDiscount, new { type = "number", step = "1", min = "0", placeholder = "e.g. 10" })
+                </div>
+                <div class="field">
+                    @Html.LabelFor(m => m.MaxDiscountAmount, "Max discount cap (INR)")
+                    @Html.TextBoxFor(m => m.MaxDiscountAmount, new { type = "number", step = "1", min = "0", placeholder = "0 = no cap" })
+                </div>
+                <div class="field">
+                    @Html.LabelFor(m => m.MinOrderValue, "Minimum order value (INR)")
+                    @Html.TextBoxFor(m => m.MinOrderValue, new { type = "number", step = "1", min = "0" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Schedule &amp; rules</h3>
+            <div class="form-grid">
+                <div class="field">
+                    @Html.LabelFor(m => m.StartsOn, "Starts on (yyyy-MM-dd)")
+                    @Html.TextBoxFor(m => m.StartsOn, new { type = "date", @class = "select" })
+                </div>
+                <div class="field">
+                    @Html.LabelFor(m => m.EndsOn, "Expires on (optional, blank = never)")
+                    @Html.TextBoxFor(m => m.EndsOn, new { type = "date", @class = "select" })
+                </div>
+                <div class="field full">
+                    <div class="flag-row">
+                        <label class="f-option">@Html.CheckBoxFor(m => m.FreeShipping) <span>Also waives delivery fee</span></label>
+                        <label class="f-option">@Html.CheckBoxFor(m => m.IsActive) <span>Active (redeemable)</span></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button class="btn btn-accent" type="submit">@(Model.IsNew ? "Create coupon" : "Save changes")</button>
+            <a class="btn btn-ghost" href="@Url.Action("Coupons", "Admin")">Cancel</a>
+        </div>
+    }
+</div>

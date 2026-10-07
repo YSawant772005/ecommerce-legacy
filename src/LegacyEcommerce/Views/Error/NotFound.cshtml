@@ -1,0 +1,13 @@
+@{
+    ViewBag.Title = "Page not found";
+}
+<div class="container narrow">
+    <div class="results-empty" style="margin-top:60px;">
+        <b>404 - Page not found</b>
+        The page you are looking for was moved, deleted or never existed.
+        <div style="margin-top:18px;display:flex;gap:10px;justify-content:center;">
+            <a class="btn btn-primary" href="@Url.Action("Index", "Home")">Go home</a>
+            <a class="btn btn-ghost" href="@Url.Action("Index", "Products")">Browse products</a>
+        </div>
+    </div>
+</div>

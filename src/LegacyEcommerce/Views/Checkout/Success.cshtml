@@ -1,0 +1,58 @@
+@model LegacyEcommerce.Models.Order
+@{
+    ViewBag.Title = "Order Confirmed";
+    var items = Model.Items != null ? Model.Items : new List<LegacyEcommerce.Models.OrderItem>();
+}
+
+<div class="container narrow">
+    <div class="success-hero">
+        <div class="check-ring">
+            <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>
+        </div>
+        <h1>Order placed successfully!</h1>
+        <p>Thank you for shopping with NovaKart. A confirmation has been sent to <b>@Model.Email</b>.</p>
+        <div class="order-meta-chips">
+            <span class="mchip"><b>Order</b> @Model.OrderNumber</span>
+            <span class="mchip"><b>Date</b> @Model.CreatedOn.ToString("dd MMM yyyy, hh:mm tt")</span>
+            <span class="mchip"><b>Payment</b> @(Model.PaymentMethod == "COD" ? "Cash on Delivery" : Model.PaymentMethod)</span>
+            <span class="mchip"><b>Amount</b> &#8377;@Model.Total.ToString("N0")</span>
+        </div>
+    </div>
+
+    <div class="step-card">
+        <div class="step-head"><span class="step-no">&#10003;</span><h3>Delivery address</h3></div>
+        <p style="margin:0;line-height:1.7;">
+            <b>@Model.FullName</b><br />
+            @Model.AddressLine<br />
+            @Model.City, @Model.State &ndash; @Model.PostalCode<br />
+            @Model.Phone
+        </p>
+    </div>
+
+    <div class="step-card">
+        <div class="step-head"><span class="step-no">&#9638;</span><h3>Items in this order</h3></div>
+        @foreach (var item in items)
+        {
+            <div class="mini-line">
+                <a href="@Url.Action("Details", "Products", new { slug = item.Slug })">
+                    <img src="@item.ImageUrl" alt="@item.ProductName" />
+                </a>
+                <div class="ml-body">
+                    <b>@item.ProductName</b>
+                    <span>Qty @item.Quantity &times; &#8377;@item.UnitPrice.ToString("N0")</span>
+                </div>
+                <div class="ml-price">&#8377;@((item.UnitPrice * item.Quantity).ToString("N0"))</div>
+            </div>
+        }
+        <div class="s-row" style="margin-top:14px;"><span>Subtotal</span><b>&#8377;@Model.Subtotal.ToString("N0")</b></div>
+        <div class="s-row"><span>Discount</span><b class="@(Model.Discount > 0 ? "green" : "")">@(Model.Discount > 0 ? "\u2212\u20B9" + Model.Discount.ToString("N0") : "\u20B90")</b></div>
+        <div class="s-row"><span>Delivery</span><b>@(Model.Shipping == 0 ? "FREE" : "\u20B9" + Model.Shipping.ToString("N0"))</b></div>
+        <div class="s-row"><span>Taxes (GST 18%)</span><b>&#8377;@Model.Tax.ToString("N2")</b></div>
+        <div class="s-total"><span>Total Paid / Payable</span><b>&#8377;@Model.Total.ToString("N0")</b></div>
+    </div>
+
+    <div class="success-actions">
+        <a class="btn btn-primary" href="@Url.Action("Index", "Account")#orders">Track this order</a>
+        <a class="btn btn-ghost" href="@Url.Action("Index", "Products")">Continue shopping</a>
+    </div>
+</div>

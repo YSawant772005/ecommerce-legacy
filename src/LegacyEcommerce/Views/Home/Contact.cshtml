@@ -1,0 +1,87 @@
+@model LegacyEcommerce.Models.ViewModels.ContactViewModel
+@{
+    ViewBag.Title = "Contact Us";
+}
+
+<div class="container static-page">
+    <nav class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a><span class="sep">/</span><span>Contact</span>
+    </nav>
+
+    <div class="static-hero">
+        <h1>Contact us</h1>
+        <p>Questions about an order, a product, or your account? We reply within 24 hours.</p>
+    </div>
+
+    <div class="static-grid contact-grid">
+        <div class="contact-meta">
+            <div class="contact-block">
+                <h3>Email us</h3>
+                <p><a href="mailto:support@novakart.in">support@novakart.in</a><br />For order help, returns &amp; payments.</p>
+            </div>
+            <div class="contact-block">
+                <h3>Call us</h3>
+                <p>1800-200-4755 (toll free)<br />Mon-Sat, 9am to 9pm IST</p>
+            </div>
+            <div class="contact-block">
+                <h3>Visit us</h3>
+                <p>NovaKart Commerce, 411 Tech Park,<br />Baner Road, Pune, Maharashtra 411045</p>
+            </div>
+            <div class="contact-block">
+                <h3>Press &amp; partnerships</h3>
+                <p><a href="mailto:partners@novakart.in">partners@novakart.in</a></p>
+            </div>
+        </div>
+
+        <div class="panel contact-form-card">
+            @if (TempData["ContactOk"] != null)
+            {
+                <div class="contact-ok">&#10003; @TempData["ContactOk"]</div>
+            }
+            @using (Html.BeginForm("Contact", "Home", FormMethod.Post, new { @class = "stack-form" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true, "", new { @class = "field-error summary-error" })
+
+                <div class="form-grid">
+                    <div class="field">
+                        @Html.LabelFor(m => m.Name, "Your name")
+                        @Html.TextBoxFor(m => m.Name, new { placeholder = "Full name" })
+                        @Html.ValidationMessageFor(m => m.Name)
+                    </div>
+                    <div class="field">
+                        @Html.LabelFor(m => m.Email, "Email address")
+                        @Html.TextBoxFor(m => m.Email, new { placeholder = "you@example.com" })
+                        @Html.ValidationMessageFor(m => m.Email)
+                    </div>
+                    <div class="field">
+                        @Html.LabelFor(m => m.Phone, "Phone (optional)")
+                        @Html.TextBoxFor(m => m.Phone, new { placeholder = "10-digit mobile" })
+                    </div>
+                    <div class="field">
+                        @Html.LabelFor(m => m.Topic, "Topic")
+                        @Html.DropDownListFor(m => m.Topic,
+                            new SelectList(new[]
+                            {
+                                "Order & delivery",
+                                "Returns & refunds",
+                                "Payments",
+                                "Product enquiry",
+                                "General enquiry"
+                            }, Model.Topic),
+                            "-- select a topic --", new { @class = "select" })
+                    </div>
+                    <div class="field full">
+                        @Html.LabelFor(m => m.Message, "Message")
+                        @Html.TextAreaFor(m => m.Message, new { rows = "6", placeholder = "How can we help?" })
+                        @Html.ValidationMessageFor(m => m.Message)
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-accent" type="submit">Send message</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>

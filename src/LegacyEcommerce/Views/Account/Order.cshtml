@@ -1,0 +1,95 @@
+@model LegacyEcommerce.Models.Order
+@{
+    ViewBag.Title = "Order " + Model.OrderNumber;
+    var items = Model.Items != null ? Model.Items : new List<LegacyEcommerce.Models.OrderItem>();
+    var steps = new[] { OrderStatus.Placed, OrderStatus.Packed, OrderStatus.Shipped, OrderStatus.Delivered };
+    var current = Array.IndexOf(steps, Model.Status);
+}
+
+<div class="container narrow">
+    <nav class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a><span class="sep">/</span>
+        <a href="@Url.Action("Index", "Account")">My Account</a><span class="sep">/</span>
+        <span>@Model.OrderNumber</span>
+    </nav>
+
+    <div class="page-head">
+        <div>
+            <h1>Order @Model.OrderNumber</h1>
+            <div class="count">Placed @Model.CreatedOn.ToString("dd MMM yyyy, hh:mm tt")</div>
+        </div>
+        <span class="status status-@Model.Status.ToString().ToLowerInvariant()">@Model.Status</span>
+    </div>
+
+    @if (Model.Status == OrderStatus.Cancelled)
+    {
+        <div class="flash-bar" style="border-radius:10px;margin-bottom:18px;">
+            <div style="padding:0;">This order was cancelled. Contact support if you already paid.</div>
+        </div>
+    }
+    else if (current >= 0)
+    {
+        <div class="track-bar">
+            @for (int i = 0; i < steps.Length; i++)
+            {
+                <div class="track-step @(i <= current ? "is-done" : "")">
+                    <span class="dot"></span>
+                    <b>@steps[i]</b>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="step-card">
+        <div class="step-head"><span class="step-no">&#9638;</span><h3>Items</h3></div>
+        @foreach (var item in items)
+        {
+            <div class="mini-line">
+                <a href="@Url.Action("Details", "Products", new { slug = item.Slug })">
+                    <img src="@item.ImageUrl" alt="@item.ProductName" />
+                </a>
+                <div class="ml-body">
+                    <b>@item.ProductName</b>
+                    <span>Qty @item.Quantity &times; &#8377;@item.UnitPrice.ToString("N0")</span>
+                </div>
+                <div class="ml-price">&#8377;@((item.UnitPrice * item.Quantity).ToString("N0"))</div>
+            </div>
+        }
+        <div class="s-row" style="margin-top:14px;"><span>Subtotal</span><b>&#8377;@Model.Subtotal.ToString("N0")</b></div>
+        <div class="s-row"><span>Discount @(string.IsNullOrEmpty(Model.CouponCode) ? "" : "(" + Model.CouponCode + ")")</span><b class="@(Model.Discount > 0 ? "green" : "")">@(Model.Discount > 0 ? "\u2212\u20B9" + Model.Discount.ToString("N0") : "\u20B90")</b></div>
+        <div class="s-row"><span>Delivery</span><b>@(Model.Shipping == 0 ? "FREE" : "\u20B9" + Model.Shipping.ToString("N0"))</b></div>
+        <div class="s-row"><span>Taxes (GST 18%)</span><b>&#8377;@Model.Tax.ToString("N2")</b></div>
+        <div class="s-total"><span>Total</span><b>&#8377;@Model.Total.ToString("N0")</b></div>
+    </div>
+
+    <div class="split-2">
+        <div class="step-card">
+            <div class="step-head"><span class="step-no">&#8962;</span><h3>Delivery address</h3></div>
+            <p style="margin:0;line-height:1.7;">
+                <b>@Model.FullName</b><br />@Model.AddressLine<br />@Model.City, @Model.State &ndash; @Model.PostalCode<br />@Model.Phone
+            </p>
+        </div>
+        <div class="step-card">
+            <div class="step-head"><span class="step-no">&#9679;</span><h3>Payment</h3></div>
+            <p style="margin:0;line-height:1.7;">
+                <b>@(Model.PaymentMethod == "COD" ? "Cash on Delivery" : Model.PaymentMethod)</b><br />
+                @(string.IsNullOrEmpty(Model.PaymentRef) ? "No transaction reference" : "Ref: " + Model.PaymentRef)<br />
+                Status: @(Model.Status == OrderStatus.Delivered ? "Completed" : "Pending")
+            </p>
+        </div>
+    </div>
+
+    <div class="success-actions">
+        <a class="btn btn-ghost" href="@Url.Action("Index", "Account")">&larr; Back to my orders</a>
+        <a class="btn btn-primary" href="@Url.Action("Index", "Products")">Shop again</a>
+        @if (Model.Status == OrderStatus.Placed || Model.Status == OrderStatus.Packed)
+        {
+            using (Html.BeginForm("CancelOrder", "Account", FormMethod.Post, new { @class = "cancel-order-form" }))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.OrderNumber" />
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Cancel this order? Any payment will be refunded.');">Cancel order</button>
+            }
+        }
+    </div>
+</div>

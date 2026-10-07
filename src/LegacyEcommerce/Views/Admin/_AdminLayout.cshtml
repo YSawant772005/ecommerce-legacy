@@ -1,0 +1,87 @@
+@{
+    var path = Request.Path ?? "";
+    var onDash = path.IndexOf("/admin/dashboard", StringComparison.OrdinalIgnoreCase) >= 0 ? "is-on" : "";
+    var onProducts = path.IndexOf("/admin/product", StringComparison.OrdinalIgnoreCase) >= 0 ? "is-on" : "";
+    var onOrders = path.IndexOf("/admin/order", StringComparison.OrdinalIgnoreCase) >= 0 ? "is-on" : "";
+    var onCoupons = path.IndexOf("/admin/coupon", StringComparison.OrdinalIgnoreCase) >= 0 ? "is-on" : "";
+    var onCustomers = path.IndexOf("/admin/customer", StringComparison.OrdinalIgnoreCase) >= 0 ? "is-on" : "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@(ViewBag.Title != null ? ViewBag.Title + " | NovaKart Admin" : "NovaKart Admin")</title>
+    <link rel="icon" type="image/svg+xml" href="@Url.Content("~/Content/favicon.svg")" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/site.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/admin.css")" />
+</head>
+<body class="admin-body">
+    <div class="admin-shell">
+        <aside class="admin-side">
+            <a class="logo admin-logo" href="@Url.Action("Dashboard", "Admin")">Nova<span>Kart</span> <em>admin</em></a>
+            <nav>
+                <a class="@onDash" href="@Url.Action("Dashboard", "Admin")">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7.5" height="7.5" rx="2"></rect><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"></rect><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"></rect><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"></rect></svg>
+                    Dashboard
+                </a>
+                <a class="@onProducts" href="@Url.Action("Products", "Admin")">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 8l-9-5-9 5 9 5 9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path></svg>
+                    Products
+                </a>
+                <a class="@onOrders" href="@Url.Action("Orders", "Admin")">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2h12l1.5 5H4.5L6 2z"></path><path d="M4.5 7h15v13a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2V7z"></path></svg>
+                    Orders
+                </a>
+                <a class="@onCoupons" href="@Url.Action("Coupons", "Admin")">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><path d="M16 4l3 6H3l3-6a2 2 0 0 1 3 0 2 2 0 0 1 4 0 2 2 0 0 1 3 0z"></path></svg>
+                    Coupons
+                </a>
+                <a class="@onCustomers" href="@Url.Action("Customers", "Admin")">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.5 3.2-5.5 6.5-5.5s5.7 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16 14.5c2.4.4 4.2 2 4.9 4.5"></path></svg>
+                    Customers
+                </a>
+                <a href="@Url.Action("Index", "Products")" target="_blank">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 4h6v6"></path><path d="M20 4l-9 9"></path><path d="M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"></path></svg>
+                    View storefront
+                </a>
+            </nav>
+            <div class="admin-side-foot">
+                <a href="@Url.Action("Index", "Account")">My account</a>
+                <a href="@Url.Action("Logout", "Account")">Sign out</a>
+            </div>
+        </aside>
+
+        <div class="admin-main">
+            <header class="admin-top">
+                <div>
+                    <h1>@ViewBag.Title</h1>
+                </div>
+                <div class="admin-top-right">
+                    <span class="admin-chip">.NET 4.7 &middot; MVC 5 &middot; EF6</span>
+                    @if (path.IndexOf("/admin/coupon", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        <a class="btn btn-primary" href="@Url.Action("CouponCreate", "Admin")">+ New coupon</a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-primary" href="@Url.Action("ProductCreate", "Admin")">+ New product</a>
+                    }
+                </div>
+            </header>
+
+            @if (TempData["Message"] != null)
+            {
+                <div class="flash-bar admin-flash"><div>@TempData["Message"]</div></div>
+            }
+
+            <div class="admin-content">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+    <div class="toast-root" id="toastRoot"></div>
+    <script src="@Url.Content("~/Scripts/site.js")"></script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

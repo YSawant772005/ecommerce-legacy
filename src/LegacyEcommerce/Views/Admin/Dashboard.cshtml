@@ -1,0 +1,97 @@
+@model LegacyEcommerce.Models.ViewModels.AdminDashboardViewModel
+@{
+    ViewBag.Title = "Admin Dashboard";
+}
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <span class="s-label">Total revenue</span>
+        <b>&#8377;@Model.Revenue.ToString("N0")</b>
+        <span class="s-sub green">&#8377;@Model.MonthlyRevenue.ToString("N0") in the last 30 days</span>
+    </div>
+    <div class="stat-card">
+        <span class="s-label">Orders</span>
+        <b>@Model.OrderCount.ToString("N0")</b>
+        <span class="s-sub">@(Model.OrdersByStatus.ContainsKey("Placed") ? Model.OrdersByStatus["Placed"] + " awaiting dispatch" : "0 awaiting dispatch")</span>
+    </div>
+    <div class="stat-card">
+        <span class="s-label">Products</span>
+        <b>@Model.ProductCount.ToString("N0")</b>
+        <span class="s-sub">@Model.LowStock.Count low stock (5 or fewer)</span>
+    </div>
+    <div class="stat-card">
+        <span class="s-label">Customers</span>
+        <b>@Model.CustomerCount.ToString("N0")</b>
+        <span class="s-sub">registered shoppers</span>
+    </div>
+</div>
+
+<div class="admin-grid-2">
+    <section class="panel">
+        <div class="panel-head">
+            <h2>Recent orders</h2>
+            <a class="link-arrow" href="@Url.Action("Orders", "Admin")">All orders &rarr;</a>
+        </div>
+        <table class="table">
+            <thead>
+                <tr><th>Order</th><th>Customer</th><th>Status</th><th class="right">Total</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var o in Model.RecentOrders)
+                {
+                    <tr>
+                        <td><a href="@Url.Action("OrderDetails", "Admin", new { id = o.Id })"><b>@o.OrderNumber</b></a><div class="t-sub">@o.CreatedOn.ToString("dd MMM, hh:mm tt")</div></td>
+                        <td>@o.FullName<div class="t-sub">@o.City</div></td>
+                        <td><span class="status status-@o.Status.ToString().ToLowerInvariant()">@o.Status</span></td>
+                        <td class="right"><b>&#8377;@o.Total.ToString("N0")</b></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @if (Model.RecentOrders.Count == 0)
+        {
+            <div class="panel-empty">No orders yet.</div>
+        }
+    </section>
+
+    <section class="panel">
+        <div class="panel-head">
+            <h2>Low stock alerts</h2>
+            <a class="link-arrow" href="@Url.Action("Products", "Admin")">Inventory &rarr;</a>
+        </div>
+        @if (Model.LowStock.Count == 0)
+        {
+            <div class="panel-empty">All products are well stocked.</div>
+        }
+        else
+        {
+            <ul class="alert-list">
+                @foreach (var p in Model.LowStock)
+                {
+                    <li>
+                        <img src="@p.ImageUrl" alt="@p.Name" />
+                        <div class="al-body">
+                            <b>@p.Name</b>
+                            <span>@p.Category.Name &middot; SKU @p.Sku</span>
+                        </div>
+                        <span class="stock-pill @(p.Stock == 0 ? "is-out" : "")">@p.Stock left</span>
+                    </li>
+                }
+            </ul>
+        }
+
+        <div class="panel-head" style="margin-top:22px;">
+            <h2>Orders by status</h2>
+        </div>
+        <ul class="status-bars">
+            @foreach (var kv in Model.OrdersByStatus)
+            {
+                <li>
+                    <span class="sb-label">@kv.Key</span>
+                    <span class="sb-track"><span class="sb-fill" style="width:@(Model.OrderCount == 0 ? 0 : (int)Math.Round(kv.Value * 100.0 / Model.OrderCount))%"></span></span>
+                    <span class="sb-val">@kv.Value</span>
+                </li>
+            }
+        </ul>
+    </section>
+</div>

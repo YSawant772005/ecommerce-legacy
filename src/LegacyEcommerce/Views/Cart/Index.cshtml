@@ -1,0 +1,117 @@
+@model LegacyEcommerce.Models.ViewModels.CartViewModel
+@{
+    ViewBag.Title = "Your Cart";
+    decimal savings = 0;
+    foreach (var l in Model.Lines)
+    {
+        if (l.Product.ComparePrice.HasValue && l.Product.ComparePrice.Value > l.Product.Price)
+        {
+            savings += (l.Product.ComparePrice.Value - l.Product.Price) * l.Qty;
+        }
+    }
+    var t = Model.Totals;
+}
+
+<div class="container narrow">
+    <nav class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a><span class="sep">/</span><span>Cart</span>
+    </nav>
+
+    <h1 class="page-title">Your Cart <span class="count">(@t.Count items)</span></h1>
+
+    @if (t.Count == 0)
+    {
+        <div class="results-empty">
+            <b>Your cart is empty</b>
+            Browse the catalogue and add something you love.
+            <div style="margin-top:18px;">
+                <a class="btn btn-primary" href="@Url.Action("Index", "Products")">Start shopping</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="cart-layout">
+            <div class="cart-lines" id="cartLines">
+                @foreach (var line in Model.Lines)
+                {
+                    var item = line.Product;
+                    <div class="cart-line" data-line="@item.Id">
+                        <a class="cl-img" href="@Url.Action("Details", "Products", new { slug = item.Slug })">
+                            <img src="@item.ImageUrl" alt="@item.Name" />
+                        </a>
+                        <div class="cl-info">
+                            <div class="cl-brand">@item.Brand.Name</div>
+                            <a class="cl-name" href="@Url.Action("Details", "Products", new { slug = item.Slug })">@item.Name</a>
+                            <div class="cl-actions">
+                                <div class="qty" data-id="@item.Id">
+                                    <button type="button" data-step="-1" aria-label="Decrease">&minus;</button>
+                                    <input type="text" value="@line.Qty" readonly aria-label="Quantity" />
+                                    <button type="button" data-step="1" aria-label="Increase">+</button>
+                                </div>
+                                <a class="cl-link" href="#" data-remove="@item.Id">Remove</a>
+                                <a class="cl-link" href="#" data-wish="@item.Id">Move to wishlist</a>
+                            </div>
+                        </div>
+                        <div class="cl-price">
+                            @Html.Price(line.LineTotal)
+                            @if (item.ComparePrice.HasValue)
+                            {
+                                <div class="cl-strike">@Html.Price(item.ComparePrice.Value, true)</div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <aside class="summary-card" id="summaryCard">
+                <h3>Price Details</h3>
+                <div class="s-row"><span>Price (@t.Count items)</span><b id="sumPrice">&#8377;@t.Subtotal.ToString("N0")</b></div>
+                <div class="s-row"><span>Discount</span><b class="green" id="sumDiscount">@(t.Discount > 0 ? "\u2212\u20B9" + t.Discount.ToString("N0") : "\u20B90")</b></div>
+                <div class="s-row"><span>Delivery charges</span><b id="sumShip">@(t.Shipping == 0 ? "FREE" : "\u20B9" + t.Shipping.ToString("N0"))</b></div>
+                <div class="s-row"><span>Taxes (GST 18%)</span><b id="sumTax">&#8377;@t.Tax.ToString("N2")</b></div>
+
+                <div class="coupon-applied @(string.IsNullOrEmpty(t.CouponCode) ? "is-hidden" : "")" id="couponApplied">
+                    <span>Coupon <b id="couponName">@t.CouponCode</b> applied</span>
+                    <a href="#" id="removeCoupon">Remove</a>
+                </div>
+
+                <div class="s-total"><span>Total Payable</span><b id="sumTotal">&#8377;@t.Total.ToString("N0")</b></div>
+
+                <div class="savings @(savings <= 0 ? "is-hidden" : "")" id="savingsBar">You save &#8377;@savings.ToString("N0") on this order</div>
+
+                <div class="coupon-box">
+                    <div class="coupon-row">
+                        <input type="text" id="couponInput" placeholder="Enter coupon code" value="@t.CouponCode" />
+                        <button type="button" class="btn btn-primary" id="applyCoupon">Apply</button>
+                    </div>
+                    <div class="coupon-msg" id="couponMsg">@(string.IsNullOrEmpty(t.CouponMessage) ? "" : t.CouponMessage)</div>
+                    <div class="coupon-hints">
+                        @{
+                            var activeCoupons = (IEnumerable<LegacyEcommerce.Models.Coupon>)ViewBag.Coupons;
+                        }
+                        @foreach (var cp in activeCoupons)
+                        {
+                            <span class="hint" data-code="@cp.Code" title="@cp.Description">@cp.Code</span>
+                        }
+                    </div>
+                </div>
+
+                <a class="btn btn-accent place-btn" href="@Url.Action("Index", "Checkout")">Proceed to Checkout</a>
+                <div class="safe-note">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 3.5v6c0 5-3.4 8.9-8 10.5-4.6-1.6-8-5.5-8-10.5v-6z"></path></svg>
+                    Safe and secure payments. 100% buyer protection.
+                </div>
+            </aside>
+        </div>
+
+        <div class="cart-foot">
+            <a class="link-arrow" href="@Url.Action("Index", "Products")">&larr; Continue shopping</a>
+            <a class="btn btn-ghost" href="#" id="clearCart">Clear cart</a>
+        </div>
+    }
+</div>
+
+@section scripts {
+    <script src="@Url.Content("~/Scripts/cart.js")"></script>
+}

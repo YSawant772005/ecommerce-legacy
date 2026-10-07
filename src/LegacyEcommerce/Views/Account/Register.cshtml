@@ -1,0 +1,70 @@
+@model LegacyEcommerce.Models.ViewModels.RegisterViewModel
+@{
+    ViewBag.Title = "Create Account";
+}
+
+<div class="container auth-wrap">
+    <div class="auth-card">
+        <div class="auth-art">
+            <h2>Join NovaKart today</h2>
+            <p>Create a free account in under a minute. It is quick, secure and always free.</p>
+            <ul>
+                <li>Track every order in one place</li>
+                <li>One-tap reorder of past purchases</li>
+                <li>Coupons &amp; offers before anyone else</li>
+            </ul>
+            <div class="auth-demo">
+                <b>Already a member?</b>
+                <span><a href="@Url.Action("Login", "Account")" style="color:#c7d2fe;">Sign in instead &rarr;</a></span>
+            </div>
+        </div>
+
+        <div class="auth-form">
+            <h1>Create your account</h1>
+            <p class="muted">A world of brands, delivered to your door.</p>
+
+            @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { @class = "stack-form" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true, "", new { @class = "field-error summary-error" })
+
+                <div class="field">
+                    @Html.LabelFor(m => m.FullName, "Full name")
+                    @Html.TextBoxFor(m => m.FullName, new { placeholder = "e.g. Priya Sharma", autofocus = "autofocus" })
+                    @Html.ValidationMessageFor(m => m.FullName)
+                </div>
+
+                <div class="field">
+                    @Html.LabelFor(m => m.Email, "Email address")
+                    @Html.TextBoxFor(m => m.Email, new { type = "email", placeholder = "you@example.com" })
+                    @Html.ValidationMessageFor(m => m.Email)
+                </div>
+
+                <div class="field">
+                    @Html.LabelFor(m => m.Phone, "Phone (optional)")
+                    @Html.TextBoxFor(m => m.Phone, new { placeholder = "10-digit mobile number" })
+                    @Html.ValidationMessageFor(m => m.Phone)
+                </div>
+
+                <div class="field-row">
+                    <div class="field">
+                        @Html.LabelFor(m => m.Password, "Password")
+                        @Html.TextBoxFor(m => m.Password, new { type = "password", placeholder = "Min 6 characters" })
+                        @Html.ValidationMessageFor(m => m.Password)
+                    </div>
+                    <div class="field">
+                        @Html.LabelFor(m => m.ConfirmPassword, "Confirm password")
+                        @Html.TextBoxFor(m => m.ConfirmPassword, new { type = "password", placeholder = "Repeat password" })
+                        @Html.ValidationMessageFor(m => m.ConfirmPassword)
+                    </div>
+                </div>
+
+                <button class="btn btn-accent full" type="submit">Create account</button>
+
+                <div class="auth-alt">
+                    Already registered? <a href="@Url.Action("Login", "Account")">Sign in</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

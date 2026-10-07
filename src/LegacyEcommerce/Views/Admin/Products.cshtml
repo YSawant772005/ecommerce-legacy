@@ -1,0 +1,96 @@
+@model LegacyEcommerce.Models.ViewModels.AdminProductsViewModel
+@{
+    ViewBag.Title = "Manage Products";
+    int totalPages = Model.TotalPages;
+}
+
+<div class="panel">
+    <div class="panel-head">
+        <form class="inline-search" action="@Url.Action("Products", "Admin")" method="get">
+            <input type="search" name="q" value="@Model.Q" placeholder="Search by name, SKU or brand..." />
+            <button class="btn btn-primary" type="submit">Search</button>
+            @if (!string.IsNullOrEmpty(Model.Q))
+            {
+                <a class="btn btn-ghost" href="@Url.Action("Products", "Admin")">Clear</a>
+            }
+        </form>
+        <div class="count-chip">@Model.TotalCount.ToString("N0") products</div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Category</th>
+                <th>SKU</th>
+                <th class="right">Price</th>
+                <th class="right">Stock</th>
+                <th class="right">Rating</th>
+                <th class="right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model.Products)
+            {
+                <tr>
+                    <td>
+                        <div class="cell-product">
+                            <img src="@p.ImageUrl" alt="@p.Name" />
+                            <div>
+                                <b>@p.Name</b>
+                                <div class="t-sub">@p.Brand.Name @(p.IsDeal ? "· Deal" : "") @(p.IsNew ? "· New" : "")</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>@p.Category.Name</td>
+                    <td><code>@p.Sku</code></td>
+                    <td class="right">
+                        &#8377;@p.Price.ToString("N0")
+                        @if (p.ComparePrice.HasValue)
+                        {
+                            <div class="t-sub"><s>&#8377;@p.ComparePrice.Value.ToString("N0")</s></div>
+                        }
+                    </td>
+                    <td class="right"><span class="stock-pill @(p.Stock <= 5 ? "is-out" : "")">@p.Stock</span></td>
+                    <td class="right">@p.Rating.ToString("0.0")</td>
+                    <td class="right">
+                        <div class="row-actions">
+                            <a class="btn btn-mini btn-ghost" href="@Url.Action("ProductEdit", "Admin", new { id = p.Id })">Edit</a>
+                            <a class="btn btn-mini btn-ghost" href="@Url.Action("Details", "Products", new { slug = p.Slug })" target="_blank">View</a>
+                            @using (Html.BeginForm("ProductDelete", "Admin", FormMethod.Post, new { onsubmit = "return confirm('Delete this product? This cannot be undone.');" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@p.Id" />
+                                <button class="btn btn-mini btn-danger" type="submit">Delete</button>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (Model.Products.Count == 0)
+    {
+        <div class="panel-empty">No products match "@Model.Q".</div>
+    }
+
+    @if (totalPages > 1)
+    {
+        <div class="pager">
+            <a class="@(Model.Page <= 1 ? "is-disabled" : "")" href="@Url.Action("Products", "Admin", new { q = Model.Q, page = Model.Page - 1 })">&larr; Prev</a>
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                if (i == 1 || i == totalPages || Math.Abs(i - Model.Page) <= 2)
+                {
+                    <a class="@(i == Model.Page ? "is-current" : "")" href="@Url.Action("Products", "Admin", new { q = Model.Q, page = i })">@i</a>
+                }
+                else if (Math.Abs(i - Model.Page) == 3)
+                {
+                    <span class="gap">&hellip;</span>
+                }
+            }
+            <a class="@(Model.Page >= totalPages ? "is-disabled" : "")" href="@Url.Action("Products", "Admin", new { q = Model.Q, page = Model.Page + 1 })">Next &rarr;</a>
+        </div>
+    }
+</div>

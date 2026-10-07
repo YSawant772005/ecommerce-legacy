@@ -1,0 +1,94 @@
+@model LegacyEcommerce.Models.Order
+@{
+    ViewBag.Title = "Order " + Model.OrderNumber;
+    var items = Model.Items != null ? Model.Items : new List<LegacyEcommerce.Models.OrderItem>();
+    var statuses = new[] { "Placed", "Packed", "Shipped", "Delivered", "Cancelled" };
+}
+
+<div class="admin-grid-2">
+    <section class="panel">
+        <div class="panel-head">
+            <h2>Order details</h2>
+            <span class="status status-@Model.Status.ToString().ToLowerInvariant()">@Model.Status</span>
+        </div>
+
+        <div class="kv-grid">
+            <div><span>Order number</span><b>@Model.OrderNumber</b></div>
+            <div><span>Placed on</span><b>@Model.CreatedOn.ToString("dd MMM yyyy, hh:mm tt")</b></div>
+            <div><span>Customer</span><b>@Model.FullName</b></div>
+            <div><span>Email</span><b>@Model.Email</b></div>
+            <div><span>Phone</span><b>@(string.IsNullOrEmpty(Model.Phone) ? "-" : Model.Phone)</b></div>
+            <div><span>Account</span><b>@(Model.User != null ? Model.User.Email : "Guest checkout")</b></div>
+        </div>
+
+        <p style="margin:14px 0 0;line-height:1.7;">
+            <b>Ship to:</b><br />
+            @Model.AddressLine<br />@Model.City, @Model.State &ndash; @Model.PostalCode
+        </p>
+
+        <table class="table" style="margin-top:18px;">
+            <thead>
+                <tr><th>Item</th><th class="right">Price</th><th class="right">Qty</th><th class="right">Total</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var item in items)
+                {
+                    <tr>
+                        <td>
+                            <div class="cell-product">
+                                <img src="@item.ImageUrl" alt="@item.ProductName" />
+                                <div>
+                                    <b>@item.ProductName</b>
+                                    <div class="t-sub">@item.Slug</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="right">&#8377;@item.UnitPrice.ToString("N0")</td>
+                        <td class="right">@item.Quantity</td>
+                        <td class="right"><b>&#8377;@item.LineTotal.ToString("N0")</b></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="money-box">
+            <div class="s-row"><span>Subtotal</span><b>&#8377;@Model.Subtotal.ToString("N0")</b></div>
+            <div class="s-row"><span>Discount @(string.IsNullOrEmpty(Model.CouponCode) ? "" : "(" + Model.CouponCode + ")")</span><b class="@(Model.Discount > 0 ? "green" : "")">@(Model.Discount > 0 ? "\u2212\u20B9" + Model.Discount.ToString("N0") : "\u20B90")</b></div>
+            <div class="s-row"><span>Delivery</span><b>@(Model.Shipping == 0 ? "FREE" : "\u20B9" + Model.Shipping.ToString("N0"))</b></div>
+            <div class="s-row"><span>Taxes (GST 18%)</span><b>&#8377;@Model.Tax.ToString("N2")</b></div>
+            <div class="s-total"><span>Total</span><b>&#8377;@Model.Total.ToString("N0")</b></div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-head"><h2>Update status</h2></div>
+
+        @using (Html.BeginForm("UpdateOrderStatus", "Admin", FormMethod.Post, new { @class = "stack-form" }))
+        {
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <div class="field">
+                <label for="status">Order status</label>
+                <select class="select" name="status" id="status">
+                    @foreach (var s in statuses)
+                    {
+                        <option value="@s" selected="@(Model.Status.ToString() == s)">@s</option>
+                    }
+                </select>
+            </div>
+            <button class="btn btn-primary" type="submit">Save status</button>
+        }
+
+        <div class="panel-head" style="margin-top:26px;"><h2>Payment</h2></div>
+        <div class="kv-grid">
+            <div><span>Method</span><b>@(Model.PaymentMethod == "COD" ? "Cash on Delivery" : Model.PaymentMethod)</b></div>
+            <div><span>Reference</span><b>@(string.IsNullOrEmpty(Model.PaymentRef) ? "-" : Model.PaymentRef)</b></div>
+            <div><span>Coupon</span><b>@(string.IsNullOrEmpty(Model.CouponCode) ? "-" : Model.CouponCode)</b></div>
+        </div>
+
+        <div class="form-actions">
+            <a class="btn btn-ghost" href="@Url.Action("Orders", "Admin")">&larr; Back to orders</a>
+            <a class="btn btn-ghost" href="@Url.Action("Index", "Account")" target="_blank">Customer view</a>
+        </div>
+    </section>
+</div>

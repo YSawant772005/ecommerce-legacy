@@ -1,0 +1,5 @@
+@model IEnumerable<LegacyEcommerce.Models.Product>
+@foreach (var p in Model)
+{
+    @Html.Partial("_ProductCard", p)
+}

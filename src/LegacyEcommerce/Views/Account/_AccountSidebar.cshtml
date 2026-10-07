@@ -1,0 +1,23 @@
+@model LegacyEcommerce.Models.User
+@{
+    var section = (ViewData["Section"] as string) ?? "orders";
+}
+<aside class="account-side">
+    <div class="profile-card">
+        <div class="p-avatar">@(Model.FullName == null ? "?" : Model.FullName.Substring(0, 1).ToUpper())</div>
+        <b>@Model.FullName</b>
+        <span>@Model.Email</span>
+        @if (!string.IsNullOrEmpty(Model.Phone)) { <span>@Model.Phone</span> }
+        <span class="role-chip">@(Model.Role == "Admin" ? "Administrator" : "Member since " + Model.CreatedOn.ToString("MMM yyyy"))</span>
+    </div>
+    <nav class="account-nav">
+        <a href="@Url.Action("Index", "Account")" class="@(section == "orders" ? "is-on" : "")">My Orders</a>
+        <a href="@Url.Action("Addresses", "Account")" class="@(section == "addresses" ? "is-on" : "")">My Addresses</a>
+        <a href="@Url.Action("Index", "Wishlist")">Wishlist</a>
+        <a href="@Url.Action("Index", "Cart")">My Cart</a>
+        <a href="@Url.Action("EditProfile", "Account")" class="@(section == "profile" ? "is-on" : "")">Edit Profile</a>
+        <a href="@Url.Action("ChangePassword", "Account")" class="@(section == "profile" ? "is-on" : "")">Change Password</a>
+        @if (Model.Role == "Admin") { <a href="@Url.Action("Dashboard", "Admin")">Admin Dashboard</a> }
+        <a href="@Url.Action("Logout", "Account")">Sign out</a>
+    </nav>
+</aside>

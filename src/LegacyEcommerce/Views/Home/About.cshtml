@@ -1,0 +1,79 @@
+@{
+    ViewBag.Title = "About NovaKart";
+}
+
+<div class="container static-page">
+    <nav class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a><span class="sep">/</span><span>About</span>
+    </nav>
+
+    <div class="static-hero">
+        <h1>About NovaKart</h1>
+        <p>Quality products, honest prices and doorstep delivery across India since 2019.</p>
+    </div>
+
+    <div class="static-grid">
+        <div>
+            <h2>What we do</h2>
+            <p>
+                NovaKart started as a small campus project with a simple idea: online shopping
+                should not feel like a gamble. We hand-pick every product in our catalogue,
+                show you the real price alongside the MRP, and put delivery times on the
+                front page - no surprises at checkout.
+            </p>
+            <p>
+                Today our catalogue spans electronics, fashion, home essentials, books and
+                more, fulfilled through a growing network of sellers and warehouses across India.
+            </p>
+        </div>
+        <div class="static-facts">
+            <div class="fact"><strong>40,000+</strong><span>products in catalogue</span></div>
+            <div class="fact"><strong>7,300+</strong><span>customer reviews and ratings</span></div>
+            <div class="fact"><strong>15 days</strong><span>easy returns policy</span></div>
+            <div class="fact"><strong>24-hours</strong><span>support response promise</span></div>
+        </div>
+    </div>
+
+    <div class="static-section">
+        <h2>The NovaKart promise</h2>
+        <div class="promise-list">
+            <div class="promise">
+                <span class="promise-ico">&#128274;</span>
+                <div>
+                    <h3>Secure payments</h3>
+                    <p>Encrypted checkout with UPI, cards and cash on delivery.</p>
+                </div>
+            </div>
+            <div class="promise">
+                <span class="promise-ico">&#128666;</span>
+                <div>
+                    <h3>Fast, tracked delivery</h3>
+                    <p>Real-time order tracking from the warehouse to your door.</p>
+                </div>
+            </div>
+            <div class="promise">
+                <span class="promise-ico">&#128260;</span>
+                <div>
+                    <h3>Anytime returns</h3>
+                    <p>14-day no-questions returns and instant refunds on eligible items.</p>
+                </div>
+            </div>
+            <div class="promise">
+                <span class="promise-ico">&#128172;</span>
+                <div>
+                    <h3>Real human support</h3>
+                    <p>Reach us through the contact page - a real person replies within a day.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="static-cta">
+        <h2>Ready to shop?</h2>
+        <p>Browse the catalogue or get in touch - we are happy to help.</p>
+        <div class="static-cta-actions">
+            <a class="btn btn-accent" href="@Url.Action("Index", "Products")">Browse products</a>
+            <a class="btn btn-ghost" href="@Url.Action("Contact", "Home")">Contact us</a>
+        </div>
+    </div>
+</div>

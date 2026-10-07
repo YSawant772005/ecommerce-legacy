@@ -1,0 +1,119 @@
+@model LegacyEcommerce.Models.Product
+@{
+    var isEdit = Model.Id > 0;
+    ViewBag.Title = isEdit ? "Edit Product" : "Add Product";
+}
+
+<div class="panel">
+    @using (Html.BeginForm(isEdit ? "ProductEdit" : "ProductCreate", "Admin", FormMethod.Post, new { @class = "stack-form product-form" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(m => m.Id)
+        @Html.ValidationSummary(true, "", new { @class = "field-error summary-error" })
+
+        <div class="form-section">
+            <h3>Basics</h3>
+            <div class="form-grid">
+                <div class="field full">
+                    @Html.LabelFor(m => m.Name, "Product name")
+                    @Html.TextBoxFor(m => m.Name, new { placeholder = "e.g. AeroFit Pro Wireless Headphones" })
+                    @Html.ValidationMessageFor(m => m.Name)
+                </div>
+                <div class="field">
+                    @Html.LabelFor(m => m.Sku, "SKU (optional - auto-generated when blank)")
+                    @Html.TextBoxFor(m => m.Sku, new { placeholder = "NK-XXXX-000" })
+                    @Html.ValidationMessageFor(m => m.Sku)
+                </div>
+                <div class="field">
+                    @Html.LabelFor(m => m.CategoryId, "Category")
+                    @Html.DropDownListFor(m => m.CategoryId, (SelectList)ViewBag.Categories, "-- select category --", new { @class = "select" })
+                    @Html.ValidationMessageFor(m => m.CategoryId)
+                </div>
+                <div class="field">
+                    @Html.LabelFor(m => m.BrandId, "Brand")
+                    @Html.DropDownListFor(m => m.BrandId, (SelectList)ViewBag.Brands, "-- select brand --", new { @class = "select" })
+                    @Html.ValidationMessageFor(m => m.BrandId)
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Pricing &amp; inventory</h3>
+            <div class="form-grid">
+                <div class="field">
+                    @Html.LabelFor(m => m.Price, "Selling price (INR)")
+                    @Html.TextBoxFor(m => m.Price, new { type = "number", step = "1", min = "1" })
+                    @Html.ValidationMessageFor(m => m.Price)
+                </div>
+                <div class="field">
+                    @Html.LabelFor(m => m.ComparePrice, "MRP / compare-at price (optional)")
+                    @Html.TextBoxFor(m => m.ComparePrice, new { type = "number", step = "1", min = "0", placeholder = "Shown struck through" })
+                    @Html.ValidationMessageFor(m => m.ComparePrice)
+                </div>
+                <div class="field">
+                    @Html.LabelFor(m => m.Stock, "Stock on hand")
+                    @Html.TextBoxFor(m => m.Stock, new { type = "number", min = "0" })
+                    @Html.ValidationMessageFor(m => m.Stock)
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Content</h3>
+            <div class="form-grid">
+                <div class="field full">
+                    @Html.LabelFor(m => m.ShortDescription, "Short description")
+                    @Html.TextBoxFor(m => m.ShortDescription, new { placeholder = "One-liner shown under the title" })
+                </div>
+                <div class="field full">
+                    @Html.LabelFor(m => m.Description, "Full description")
+                    @Html.TextAreaFor(m => m.Description, new { rows = "5", placeholder = "Detailed marketing copy, features, materials..." })
+                </div>
+                <div class="field">
+                    @Html.LabelFor(m => m.Colors, "Colors (comma separated)")
+                    @Html.TextBoxFor(m => m.Colors, new { placeholder = "Midnight Black, Silver" })
+                </div>
+                <div class="field">
+                    @Html.LabelFor(m => m.Sizes, "Sizes (comma separated)")
+                    @Html.TextBoxFor(m => m.Sizes, new { placeholder = "S, M, L, XL" })
+                </div>
+                <div class="field full">
+                    @Html.LabelFor(m => m.Highlights, "Key highlights (comma separated)")
+                    @Html.TextBoxFor(m => m.Highlights, new { placeholder = "40h battery, ANC, USB-C fast charge" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Media</h3>
+            <div class="form-grid">
+                <div class="field full">
+                    @Html.LabelFor(m => m.ImageUrl, "Primary image path")
+                    @Html.TextBoxFor(m => m.ImageUrl, new { placeholder = "/Content/images/products/electronics-v0.svg" })
+                </div>
+                <div class="field">
+                    @Html.LabelFor(m => m.ImageUrl2, "Second image")
+                    @Html.TextBoxFor(m => m.ImageUrl2)
+                </div>
+                <div class="field">
+                    @Html.LabelFor(m => m.ImageUrl3, "Third image")
+                    @Html.TextBoxFor(m => m.ImageUrl3)
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Storefront flags</h3>
+            <div class="flag-row">
+                <label class="f-option">@Html.CheckBoxFor(m => m.IsFeatured) <span>Featured on homepage</span></label>
+                <label class="f-option">@Html.CheckBoxFor(m => m.IsDeal) <span>Part of deals</span></label>
+                <label class="f-option">@Html.CheckBoxFor(m => m.IsNew) <span>Mark as new arrival</span></label>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button class="btn btn-accent" type="submit">@(isEdit ? "Save changes" : "Create product")</button>
+            <a class="btn btn-ghost" href="@Url.Action("Products", "Admin")">Cancel</a>
+        </div>
+    }
+</div>

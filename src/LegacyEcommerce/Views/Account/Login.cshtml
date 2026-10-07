@@ -1,0 +1,55 @@
+@model LegacyEcommerce.Models.ViewModels.LoginViewModel
+@{
+    ViewBag.Title = "Sign In";
+    var returnUrl = ViewBag.ReturnUrl as string;
+}
+
+<div class="container auth-wrap">
+    <div class="auth-card">
+        <div class="auth-art">
+            <h2>Welcome back to NovaKart</h2>
+            <p>Sign in to track orders, sync your wishlist and unlock member-only deals.</p>
+            <ul>
+                <li>Order tracking &amp; easy returns</li>
+                <li>Save addresses for faster checkout</li>
+                <li>Early access to deals of the day</li>
+            </ul>
+            <div class="auth-demo">
+                <b>Demo customer</b>
+                <span>demo@novakart.in &middot; Demo@123</span>
+                <b>Admin account</b>
+                <span>admin@novakart.in &middot; Admin@123</span>
+            </div>
+        </div>
+
+        <div class="auth-form">
+            <h1>Sign in</h1>
+            <p class="muted">Use your NovaKart account credentials.</p>
+
+            @using (Html.BeginForm("Login", "Account", FormMethod.Post, new { @class = "stack-form" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.Hidden("returnUrl", returnUrl)
+                @Html.ValidationSummary(true, "", new { @class = "field-error summary-error" })
+
+                <div class="field">
+                    @Html.LabelFor(m => m.Email, "Email address")
+                    @Html.TextBoxFor(m => m.Email, new { type = "email", placeholder = "you@example.com", autofocus = "autofocus" })
+                    @Html.ValidationMessageFor(m => m.Email)
+                </div>
+
+                <div class="field">
+                    @Html.LabelFor(m => m.Password, "Password")
+                    @Html.TextBoxFor(m => m.Password, new { type = "password", placeholder = "Your password" })
+                    @Html.ValidationMessageFor(m => m.Password)
+                </div>
+
+                <button class="btn btn-accent full" type="submit">Sign in</button>
+
+                <div class="auth-alt">
+                    New here? <a href="@Url.Action("Register", "Account")">Create an account</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

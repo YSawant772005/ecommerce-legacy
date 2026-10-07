@@ -1,0 +1,47 @@
+@model LegacyEcommerce.Models.ViewModels.CartViewModel
+@{
+    var miniLines = Model.Lines.Take(4).ToList();
+    var more = Model.Totals.Count - miniLines.Count;
+}
+
+<div class="mini-cart">
+    <div class="mini-head">
+        <b>Your bag</b>
+        <span>@Model.Totals.Count.ToString("N0") @(Model.Totals.Count == 1 ? "item" : "items")</span>
+    </div>
+
+    @if (Model.IsEmpty)
+    {
+        <div class="mini-empty">Your bag is empty. Explore the catalogue and add something you love.</div>
+    }
+    else
+    {
+        <div class="mini-lines">
+            @foreach (var l in miniLines)
+            {
+                <a class="mini-line" href="@Url.Action("Details", "Products", new { slug = l.Product.Slug })">
+                    <img src="@l.Product.ImageUrl" alt="@l.Product.Name" onerror="this.src='/Content/images/placeholder.svg'" />
+                    <div class="mini-info">
+                        <div class="mini-name">@l.Product.Name</div>
+                        <div class="mini-meta">&#8377;@l.Product.Price.ToString("N0") &middot; Qty @l.Qty</div>
+                    </div>
+                    <div class="mini-line-total"><b>&#8377;@l.LineTotal.ToString("N0")</b></div>
+                </a>
+            }
+            @if (more > 0)
+            {
+                <div class="mini-more">+ @more more item@(more == 1 ? "" : "s") in your bag</div>
+            }
+        </div>
+
+        <div class="mini-total">
+            <span>Subtotal @(Model.Totals.FreeShipping ? "&middot; free delivery" : "")</span>
+            <b>&#8377;@Model.Totals.Subtotal.ToString("N0")</b>
+        </div>
+
+        <div class="mini-actions">
+            <a class="btn btn-ghost" href="@Url.Action("Index", "Cart")">View cart</a>
+            <a class="btn btn-accent" href="@Url.Action("Index", "Checkout")">Checkout</a>
+        </div>
+    }
+</div>

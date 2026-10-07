@@ -1,0 +1,22 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600" role="img">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="hsl(47,72%,86%)"/>
+      <stop offset="1" stop-color="hsl(69,66%,72%)"/>
+    </linearGradient>
+    <filter id="sh" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#0f172a" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+  <rect width="600" height="600" fill="url(#bg)"/>
+  <circle cx="472" cy="116" r="152" fill="#ffffff" opacity="0.14"/>
+  <circle cx="104" cy="506" r="118" fill="#ffffff" opacity="0.10"/>
+  <ellipse cx="300" cy="474" rx="176" ry="26" fill="#0f172a" opacity="0.12"/>
+  <g filter="url(#sh)">
+<path d="M244 140 H356 L374 186 L342 214 H258 L226 186 Z" fill="#ffffff"/>
+<path d="M258 214 H342 L412 430 A16 16 0 0 1 397 452 H203 A16 16 0 0 1 188 430 Z" fill="#ffffff"/>
+<path d="M272 240 H328 L392 424 H208 Z" fill="hsl(47,62%,42%)" opacity="0.30"/>
+<rect x="244" y="196" width="112" height="16" rx="8" fill="hsl(47,62%,42%)"/>
+<circle cx="300" cy="176" r="14" fill="hsl(47,62%,42%)"/>
+  </g>
+</svg>
