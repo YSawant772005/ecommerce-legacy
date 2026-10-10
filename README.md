@@ -63,7 +63,7 @@ The problem it addresses: it is a complete, runnable example of how a classic MV
 | C# | (compiler of VS) | `*.cs` | Server code |
 | Vanilla JavaScript | — | `Scripts/*.js` | AJAX cart/wishlist, search suggest, catalog scroll, gallery/tabs |
 | CSS | — | `Content/site.css`, `Content/admin.css` | Storefront and admin styling |
-| PowerShell | 5.x | `scripts/generate-images.ps1` | Generates deterministic SVG artwork |
+| PowerShell | 5.x | `scripts/generate-images.ps1` | Downloads the local JPEG photo pack (via `curl.exe`) |
 | NuGet | — | `packages.config`, `tools/nuget.exe` | Package restore |
 
 There is **no** test project, no TypeScript, no jQuery, no Bootstrap, no bundling/minification, and no dependency-injection container. Verify by listing the repo: see [`knowledge-bytes/01-project-structure.md`](knowledge-bytes/01-project-structure.md).
@@ -83,7 +83,7 @@ flowchart TD
     EF["Entity Framework 6 (StoreContext)"]
     DB[("SQL Server LocalDB\nLegacyEcommerce")]
     Views["Razor Views + Layouts"]
-    Static["Content / Scripts (SVG, CSS, JS)"]
+    Static["Content / Scripts (photos, CSS, JS)"]
 
     Browser -->|HTTP request| Routing
     Routing --> Controllers
@@ -110,7 +110,7 @@ ecommerce-legacy/
 ├── knowledge-bytes/                 Progressive learning documentation (start here)
 ├── packages/                        NuGet packages (restored, git-ignored)
 ├── scripts/
-│   └── generate-images.ps1          Generates SVG product/category art
+│   └── generate-images.ps1          Downloads real product/category photos
 ├── tools/
 │   └── nuget.exe                    NuGet CLI used for restore
 └── src/

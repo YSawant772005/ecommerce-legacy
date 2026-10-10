@@ -2,6 +2,12 @@
 @{
     var isEdit = Model.Id > 0;
     ViewBag.Title = isEdit ? "Edit Product" : "Add Product";
+    var placeholder = Url.Content("~/Content/images/placeholder.jpg");
+    var previewSrc = string.IsNullOrWhiteSpace(Model.ImageUrl)
+        ? placeholder
+        : (Model.ImageUrl.ToLower().StartsWith("http") || Model.ImageUrl.StartsWith("/")
+            ? Model.ImageUrl
+            : Url.Content(Model.ImageUrl));
 }
 
 <div class="panel">
@@ -89,14 +95,18 @@
             <div class="form-grid">
                 <div class="field full">
                     @Html.LabelFor(m => m.ImageUrl, "Primary image path")
-                    @Html.TextBoxFor(m => m.ImageUrl, new { placeholder = "/Content/images/products/electronics-v0.svg" })
+                    @Html.TextBoxFor(m => m.ImageUrl, new { placeholder = "/Content/images/products/wireless-mouse.jpg", id = "ImageUrl" })
+                    <small class="field-hint">Path under /Content/images/products/ (e.g. /Content/images/products/wireless-mouse.jpg) or a full image URL. Leave blank to use the placeholder image.</small>
+                    <div class="img-preview">
+                        <img id="imagePreview" src="@previewSrc" alt="Image preview" onerror="this.onerror=null;this.src='@placeholder';" />
+                    </div>
                 </div>
                 <div class="field">
-                    @Html.LabelFor(m => m.ImageUrl2, "Second image")
+                    @Html.LabelFor(m => m.ImageUrl2, "Second image (optional)")
                     @Html.TextBoxFor(m => m.ImageUrl2)
                 </div>
                 <div class="field">
-                    @Html.LabelFor(m => m.ImageUrl3, "Third image")
+                    @Html.LabelFor(m => m.ImageUrl3, "Third image (optional)")
                     @Html.TextBoxFor(m => m.ImageUrl3)
                 </div>
             </div>
@@ -117,3 +127,22 @@
         </div>
     }
 </div>
+
+<script>
+    (function () {
+        var input = document.getElementById('ImageUrl');
+        var img = document.getElementById('imagePreview');
+        if (!input || !img) return;
+        var fallback = '@placeholder';
+        img.addEventListener('error', function () { if (img.src !== fallback) img.src = fallback; });
+        function refresh() {
+            var v = (input.value || '').trim();
+            if (!v) { img.src = fallback; return; }
+            if (v.charAt(0) === '~') v = v.slice(1);
+            if (v.charAt(0) !== '/' && !/^https?:/i.test(v)) v = '/' + v;
+            img.src = v;
+        }
+        input.addEventListener('input', refresh);
+        input.addEventListener('change', refresh);
+    })();
+</script>

@@ -95,7 +95,7 @@ if (target.ComparePrice.HasValue && target.ComparePrice.Value <= target.Price)
 if (string.IsNullOrWhiteSpace(target.ImageUrl))
 {
     var cat = db.Categories.Find(target.CategoryId);
-    target.ImageUrl = "/Content/images/products/" + (cat != null ? cat.Slug : "electronics") + "-v0.svg";
+    target.ImageUrl = "/Content/images/products/" + (cat != null ? cat.Slug : "electronics") + "-v0.jpg";
 }
 ```
 

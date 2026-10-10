@@ -182,7 +182,7 @@ public static void Seed(StoreContext db)
 - **9 users** (1 admin + 8 customers).
 - **60 orders** with realistic status histories, cities and line items.
 
-**Why it matters:** Seeding is deterministic and idempotent. That makes bugs reproducible but also means the demo data is "fake" and dates are relative to `DateTime.Now` at seed time. Product images are paths like `/Content/images/products/electronics-v0.svg`, which must exist under `Content/images/products/`.
+**Why it matters:** Seeding is deterministic and idempotent. That makes bugs reproducible but also means the demo data is "fake" and dates are relative to `DateTime.Now` at seed time. Product images are paths like `/Content/images/products/electronics-v0.jpg`, derived from a category slug and a variant index (`0`…`ImageVariants-1`, currently 20), which must exist under `Content/images/products/`.
 
 **Trace it further:** [05 - Product Catalog](05-product-catalog.md), [14 - Admin Dashboard & Management](14-admin-dashboard-and-management.md).
 

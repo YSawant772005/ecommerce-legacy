@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 
@@ -20,6 +21,53 @@ namespace LegacyEcommerce.Data
             }
 
             EnsureCoreTables(db);
+            RemapProductImages(db);
+        }
+
+        // Products seeded before the type-based photo mapping used per-category variant
+        // filenames such as "<category>-v3.jpg". Rewrite them to "<type-slug>.jpg" so every
+        // product shows a photo relevant to its actual type. Idempotent because the legacy
+        // "-v" naming is gone once rewritten.
+        public static void RemapProductImages(StoreContext db)
+        {
+            var products = db.Products.Where(p => p.ImageUrl.Contains("-v")).ToList();
+            if (products.Count == 0) return;
+
+            var categorySlugs = db.Categories.ToDictionary(c => c.Id, c => c.Slug);
+            var typeMap = EcommerceSeeder.GetTypeSlugs();
+
+            foreach (var product in products)
+            {
+                string catSlug;
+                if (!categorySlugs.TryGetValue(product.CategoryId, out catSlug)) continue;
+
+                List<KeyValuePair<string, string>> types;
+                if (!typeMap.TryGetValue(catSlug, out types)) continue;
+
+                string slug = null;
+                foreach (var pair in types)
+                {
+                    if (pair.Key.Length == 0 ||
+                        (product.Name != null && product.Name.IndexOf(pair.Key, StringComparison.OrdinalIgnoreCase) >= 0))
+                    {
+                        slug = pair.Value;
+                        break;
+                    }
+                }
+                if (slug == null) continue;
+
+                var url = "/Content/images/products/" + slug + ".jpg";
+                product.ImageUrl = url;
+                product.ImageUrl2 = url;
+                product.ImageUrl3 = url;
+            }
+            db.SaveChanges();
+
+            // Keep historical order line thumbnails consistent with their product's image.
+            db.Database.ExecuteSqlCommand(
+                "UPDATE oi SET oi.ImageUrl = p.ImageUrl " +
+                "FROM dbo.OrderItems oi INNER JOIN dbo.Products p ON p.Id = oi.ProductId " +
+                "WHERE oi.ImageUrl LIKE '%-v%'");
         }
 
         public static void EnsureCoreTables(StoreContext db)
@@ -125,7 +173,19 @@ namespace LegacyEcommerce.Data
                 "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_PasswordResets_Token' AND object_id = OBJECT_ID('dbo.PasswordResets')) " +
                 "CREATE UNIQUE INDEX UX_PasswordResets_Token ON dbo.PasswordResets(Token)",
                 "IF COL_LENGTH('dbo.Reviews', 'IsApproved') IS NULL " +
-                "ALTER TABLE dbo.Reviews ADD IsApproved BIT NOT NULL CONSTRAINT DF_Reviews_IsApproved DEFAULT 1"
+                "ALTER TABLE dbo.Reviews ADD IsApproved BIT NOT NULL CONSTRAINT DF_Reviews_IsApproved DEFAULT 1",
+                // Storefront images moved from generated SVG vectors to downloaded JPEG photos.
+                // Rewrite any legacy paths left in an already-seeded database.
+                "IF EXISTS (SELECT 1 FROM dbo.Products WHERE ImageUrl LIKE '%.svg' OR ImageUrl2 LIKE '%.svg' OR ImageUrl3 LIKE '%.svg') " +
+                "UPDATE dbo.Products SET " +
+                "ImageUrl = REPLACE(ImageUrl, '.svg', '.jpg'), " +
+                "ImageUrl2 = REPLACE(ImageUrl2, '.svg', '.jpg'), " +
+                "ImageUrl3 = REPLACE(ImageUrl3, '.svg', '.jpg') " +
+                "WHERE ImageUrl LIKE '%.svg' OR ImageUrl2 LIKE '%.svg' OR ImageUrl3 LIKE '%.svg'",
+                "IF EXISTS (SELECT 1 FROM dbo.Categories WHERE ImageUrl LIKE '%.svg') " +
+                "UPDATE dbo.Categories SET ImageUrl = REPLACE(ImageUrl, '.svg', '.jpg') WHERE ImageUrl LIKE '%.svg'",
+                "IF EXISTS (SELECT 1 FROM dbo.OrderItems WHERE ImageUrl LIKE '%.svg') " +
+                "UPDATE dbo.OrderItems SET ImageUrl = REPLACE(ImageUrl, '.svg', '.jpg') WHERE ImageUrl LIKE '%.svg'"
             };
 
             foreach (var sql in statements)

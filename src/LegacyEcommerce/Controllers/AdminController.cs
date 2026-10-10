@@ -604,9 +604,7 @@ namespace LegacyEcommerce.Controllers
             }
             if (string.IsNullOrWhiteSpace(target.ImageUrl))
             {
-                var cat = db.Categories.Find(target.CategoryId);
-                var slug = cat != null ? cat.Slug : "electronics";
-                target.ImageUrl = "/Content/images/products/" + slug + "-v0.svg";
+                target.ImageUrl = "/Content/images/placeholder.jpg";
             }
         }
 

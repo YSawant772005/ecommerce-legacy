@@ -9,6 +9,10 @@ namespace LegacyEcommerce.Data
     public static class EcommerceSeeder
     {
         private const int TargetProductCount = 2500;
+        // Product photos are keyed by product type: each type maps deterministically to a
+        // single image at Content/images/products/<type-slug>.jpg (books share "book.jpg").
+        // The files are produced by scripts\generate-images.ps1.
+        private const string BookImageSlug = "book";
 
         private class CatDef
         {
@@ -58,7 +62,7 @@ namespace LegacyEcommerce.Data
                     Slug = d.Slug,
                     Tagline = d.Tagline,
                     Description = d.Description,
-                    ImageUrl = "/Content/images/categories/" + d.Slug + ".svg",
+                    ImageUrl = "/Content/images/categories/" + d.Slug + ".jpg",
                     DisplayOrder = order++,
                     IsActive = true
                 });
@@ -112,7 +116,8 @@ namespace LegacyEcommerce.Data
                     catProducts++;
                     var code = d.Code + (1000 + globalIndex);
 
-                    string baseName = d.BookMode ? BuildBookName(d, rnd) : BuildStandardName(d, categoryBrands, rnd);
+                    string typeName = d.BookMode ? null : d.Types[rnd.Next(d.Types.Length)];
+                    string baseName = d.BookMode ? BuildBookName(d, rnd) : BuildStandardName(d, categoryBrands, rnd, typeName);
                     string name = baseName;
                     int guard = 0;
                     while (!usedNames.Add(name) && guard++ < 20)
@@ -138,10 +143,7 @@ namespace LegacyEcommerce.Data
                     int sold = ratingCount * rnd.Next(3, 18) + rnd.Next(0, 500);
 
                     int stock = rnd.NextDouble() < 0.03 ? 0 : rnd.Next(12, 600);
-                    var v = catProducts % 10;
-                    var img = "/Content/images/products/" + d.Slug + "-v" + v + ".svg";
-                    var img2 = "/Content/images/products/" + d.Slug + "-v" + ((v + 3) % 10) + ".svg";
-                    var img3 = "/Content/images/products/" + d.Slug + "-v" + ((v + 6) % 10) + ".svg";
+                    var imageUrl = "/Content/images/products/" + (d.BookMode ? BookImageSlug : Slugify(typeName)) + ".jpg";
 
                     var created = now.AddDays(-rnd.Next(0, 540)).AddMinutes(-rnd.Next(0, 1440));
                     bool isNew = (i >= count - Math.Max(6, count / 14)) || (now - created).TotalDays < 45;
@@ -162,9 +164,9 @@ namespace LegacyEcommerce.Data
                         SoldCount = sold,
                         CategoryId = 0,
                         BrandId = 0,
-                        ImageUrl = img,
-                        ImageUrl2 = img2,
-                        ImageUrl3 = img3,
+                        ImageUrl = imageUrl,
+                        ImageUrl2 = imageUrl,
+                        ImageUrl3 = imageUrl,
                         Colors = d.Colors != null && d.Colors.Length > 0 && !d.BookMode
                             ? string.Join(", ", Pick(rnd, d.Colors, rnd.Next(2, Math.Min(4, d.Colors.Length) + 1)))
                             : null,
@@ -388,11 +390,10 @@ namespace LegacyEcommerce.Data
             }
         }
 
-        private static string BuildStandardName(CatDef d, List<Brand> brandPool, Random rnd)
+        private static string BuildStandardName(CatDef d, List<Brand> brandPool, Random rnd, string type)
         {
             var brand = brandPool[rnd.Next(brandPool.Count)].Name;
             var desc = d.Descs[rnd.Next(d.Descs.Length)];
-            var type = d.Types[rnd.Next(d.Types.Length)];
             int pattern = rnd.Next(3);
             if (pattern == 0) return brand + " " + desc + " " + type;
             if (pattern == 1) return brand + " " + type + " " + desc;
@@ -501,6 +502,31 @@ namespace LegacyEcommerce.Data
             }
             var s = sb.ToString().Trim('-');
             return s.Length == 0 ? "item" : s;
+        }
+
+        // Maps each category slug to its product types (longest name first) so an existing
+        // product's name can be matched back to the type slug used for its image.
+        public static Dictionary<string, List<KeyValuePair<string, string>>> GetTypeSlugs()
+        {
+            var result = new Dictionary<string, List<KeyValuePair<string, string>>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var d in BuildCategories())
+            {
+                var list = new List<KeyValuePair<string, string>>();
+                if (d.BookMode)
+                {
+                    list.Add(new KeyValuePair<string, string>(string.Empty, BookImageSlug));
+                }
+                else
+                {
+                    foreach (var t in d.Types)
+                    {
+                        list.Add(new KeyValuePair<string, string>(t, Slugify(t)));
+                    }
+                    list.Sort((a, b) => b.Key.Length.CompareTo(a.Key.Length));
+                }
+                result[d.Slug] = list;
+            }
+            return result;
         }
 
         private static List<CatDef> BuildCategories()

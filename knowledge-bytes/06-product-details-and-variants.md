@@ -61,7 +61,7 @@ public ActionResult Details(string slug, string tab)
     if (!string.IsNullOrWhiteSpace(p.ImageUrl))  gallery.Add(p.ImageUrl);
     if (!string.IsNullOrWhiteSpace(p.ImageUrl2)) gallery.Add(p.ImageUrl2);
     if (!string.IsNullOrWhiteSpace(p.ImageUrl3)) gallery.Add(p.ImageUrl3);
-    if (gallery.Count == 0) gallery.Add(Url.Content("~/Content/images/" + p.Category.Slug + "-v1.svg"));
+    if (gallery.Count == 0) gallery.Add(Url.Content(p.Category != null ? "~/Content/images/products/" + p.Category.Slug + "-v0.jpg" : "~/Content/images/placeholder.jpg"));
 
     var ld = "{\"@context\":\"https://schema.org\",\"@type\":\"Product\",…";
 }

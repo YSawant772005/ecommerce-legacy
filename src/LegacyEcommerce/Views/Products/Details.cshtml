@@ -17,8 +17,9 @@
     }
     if (gallery.Count == 0)
     {
-        gallery.Add(Url.Content("~/Content/images/" + p.Category.Slug + "-v1.svg"));
+        gallery.Add(Url.Content("~/Content/images/placeholder.jpg"));
     }
+    gallery = gallery.Distinct().ToList();
     var wish = Context.Session["NK.Wishlist"] as List<int> ?? new List<int>();
     var wished = wish.Contains(p.Id);
     var sessionUser = Auth.FromSession(Context.Session);
@@ -41,8 +42,9 @@
     }
     if (images.Count == 0)
     {
-        images.Add(Url.Content("~/Content/images/" + (p.Category != null ? p.Category.Slug + "-v1.svg" : "product-v1.svg")));
+        images.Add(Url.Content("~/Content/images/placeholder.jpg"));
     }
+    images = images.Distinct().ToList();
     var ld = "{\"@context\":\"https://schema.org\",\"@type\":\"Product\",\"@id\":\"" + canonical + "\",\"name\":\"" + J(p.Name) + "\",\"image\":[" +
         string.Join(",", images.ConvertAll(i => "\"" + J(i) + "\"")) + "],\"description\":\"" + J(p.ShortDescription) + "\",\"sku\":\"" + J(p.Sku) + "\",\"mpn\":\"" + J(p.Sku) + "\",\"brand\":{\"@type\":\"Brand\",\"name\":\"" + J(p.Brand != null ? p.Brand.Name : "") + "\"},\"category\":\"" + J(p.Category != null ? p.Category.Name : "") + "\",\"url\":\"" + canonical + "\"";
     if (p.RatingCount > 0)

@@ -20,7 +20,7 @@
             @foreach (var l in miniLines)
             {
                 <a class="mini-line" href="@Url.Action("Details", "Products", new { slug = l.Product.Slug })">
-                    <img src="@l.Product.ImageUrl" alt="@l.Product.Name" onerror="this.src='/Content/images/placeholder.svg'" />
+                    <img src="@l.Product.ImageUrl" alt="@l.Product.Name" onerror="this.src='/Content/images/placeholder.jpg'" />
                     <div class="mini-info">
                         <div class="mini-name">@l.Product.Name</div>
                         @if (!string.IsNullOrEmpty(l.Variant))

@@ -112,7 +112,7 @@
 routes.MapRoute(name: "Robots", url: "robots.txt", defaults: new { controller = "Sitemap", action = "Robots" });
 ```
 
-**What's happening:** The `robots.txt`/`sitemap.xml` handler mappings route those paths through MVC (so the controller can generate them), while `StaticFile` serves CSS/JS/SVG. This requires **Integrated** pipeline mode, which the `preCondition="integratedMode"` reflects.
+**What's happening:** The `robots.txt`/`sitemap.xml` handler mappings route those paths through MVC (so the controller can generate them), while `StaticFile` serves CSS/JS/images. This requires **Integrated** pipeline mode, which the `preCondition="integratedMode"` reflects.
 
 **Why it matters:** If the app pool is set to Classic mode, these handlers won't apply and `/robots.txt` or `/sitemap.xml` may 404 or be served as static files. Keep the pool in Integrated mode.
 
@@ -141,7 +141,7 @@ routes.MapRoute(name: "Robots", url: "robots.txt", defaults: new { controller = 
 | Antiforgery error on POST | Token missing/expired or session lost | Ensure `@Html.AntiForgeryToken()` in the form; [16](16-validation-security-and-error-handling.md) |
 | Everyone logged out / carts reset | InProc session recycled (app restart, pool recycle) | Expected with `sessionState mode="InProc"`; [10](10-authentication-and-authorization.md) |
 | `/robots.txt` or `/sitemap.xml` 404 | Classic pipeline or handler removed | Byte 115 |
-| Images missing | `Content/images` not deployed or SVGs not generated | Run `scripts/generate-images.ps1`; [01](01-project-structure.md) |
+| Images missing | `Content/images` not deployed or photos not downloaded | Run `scripts/generate-images.ps1`; [01](01-project-structure.md) |
 
 **Why it matters:** Three of these (LocalDB access, Integrated pipeline, InProc session) are environment-specific and account for most real failures when moving from IIS Express to full IIS.
 

@@ -1,233 +1,247 @@
-# Generates deterministic SVG artwork for NovaKart catalogue
-# Usage: powershell -File scripts\generate-images.ps1
+# Downloads real product photographs for the NovaKart catalogue, one per product type.
+#
+# Every product type (e.g. "Wireless Mouse", "Running Shoes") maps deterministically to a
+# single relevant photo at Content/images/products/<type-slug>.jpg. Books all share
+# book.jpg. Photos come from Wikimedia Commons / Wikipedia article lead images, chosen from
+# scripts\image-map.json (curated type -> article) with scripts\overrides.json pinning exact
+# files where the auto-pick is not ideal. Everything is cached on disk so the app keeps
+# working fully offline once generated.
+#
+# Category tiles (Content/images/categories/<slug>.jpg) are copied from a representative
+# type photo so they stay on-brand instead of showing random stock pictures.
+#
+# Usage:
+#   powershell -File scripts\generate-images.ps1                 # fetch missing images
+#   powershell -File scripts\generate-images.ps1 -Force          # re-download everything
+#   powershell -File scripts\generate-images.ps1 -ProposeOnly    # show picks, download nothing
+#
+# Requires internet access for the one-time download (uses curl.exe).
+
+param(
+    [switch]$Force,
+    [switch]$ProposeOnly,
+    [int]$Side = 800
+)
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
-$outProducts = Join-Path $root "src\LegacyEcommerce\Content\images\products"
-$outCategories = Join-Path $root "src\LegacyEcommerce\Content\images\categories"
+$imgRoot = Join-Path $root "src\LegacyEcommerce\Content\images"
+$outProducts = Join-Path $imgRoot "products"
+$outCategories = Join-Path $imgRoot "categories"
 New-Item -ItemType Directory -Force -Path $outProducts, $outCategories | Out-Null
 
-$hues = @{
-    "electronics"    = 220
-    "phones-tablets" = 268
-    "computers"      = 198
-    "furniture"      = 30
-    "kitchen"        = 12
-    "mens-fashion"   = 212
-    "womens-fashion" = 330
-    "footwear"       = 158
-    "beauty"         = 284
-    "sports"         = 18
-    "toys"           = 48
-    "books"          = 355
+$apiUA = "NovaKartDemo/1.0 (educational sample; contact: dev@example.com)"
+$dlUA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
+
+$curlCmd = Get-Command curl.exe -ErrorAction SilentlyContinue
+if (-not $curlCmd) { throw "curl.exe is required to download the photo pack." }
+$curl = $curlCmd.Source
+
+# A representative type photo per category, used for the category tiles.
+$categoryTiles = [ordered]@{
+    "electronics"    = "4k-ultra-hd-smart-tv"
+    "phones-tablets" = "5g-smartphone"
+    "computers"      = "business-laptop"
+    "furniture"      = "3-seater-sofa"
+    "kitchen"        = "mixer-grinder"
+    "mens-fashion"   = "slim-fit-shirt"
+    "womens-fashion" = "saree"
+    "footwear"       = "running-shoes"
+    "beauty"         = "face-serum"
+    "sports"         = "yoga-mat"
+    "toys"           = "building-blocks-set"
+    "books"          = "book"
 }
 
-function Get-Art([string]$cat, [string]$deep) {
-    switch ($cat) {
-        "electronics" {
-            @"
-<rect x="128" y="150" width="344" height="222" rx="18" fill="#ffffff"/>
-<rect x="148" y="170" width="304" height="168" rx="10" fill="$deep"/>
-<circle cx="230" cy="235" r="34" fill="#ffffff" opacity="0.30"/>
-<rect x="288" y="212" width="120" height="14" rx="7" fill="#ffffff" opacity="0.55"/>
-<rect x="288" y="240" width="84" height="14" rx="7" fill="#ffffff" opacity="0.35"/>
-<rect x="200" y="292" width="200" height="14" rx="7" fill="#ffffff" opacity="0.30"/>
-<rect x="272" y="372" width="56" height="42" fill="#ffffff"/>
-<rect x="212" y="410" width="176" height="16" rx="8" fill="#ffffff"/>
-"@
-        }
-        "phones-tablets" {
-            @"
-<rect x="212" y="118" width="176" height="344" rx="32" fill="#ffffff"/>
-<rect x="228" y="146" width="144" height="288" rx="16" fill="$deep"/>
-<rect x="268" y="130" width="64" height="10" rx="5" fill="$deep"/>
-<circle cx="344" cy="135" r="7" fill="#ffffff"/>
-<circle cx="300" cy="240" r="46" fill="#ffffff" opacity="0.28"/>
-<rect x="256" y="320" width="88" height="12" rx="6" fill="#ffffff" opacity="0.55"/>
-<rect x="276" y="348" width="48" height="12" rx="6" fill="#ffffff" opacity="0.35"/>
-<rect x="288" y="446" width="24" height="6" rx="3" fill="$deep" opacity="0.5"/>
-"@
-        }
-        "computers" {
-            @"
-<rect x="152" y="146" width="296" height="196" rx="16" fill="#ffffff"/>
-<rect x="170" y="164" width="260" height="150" rx="8" fill="$deep"/>
-<rect x="212" y="200" width="176" height="12" rx="6" fill="#ffffff" opacity="0.55"/>
-<rect x="212" y="226" width="120" height="12" rx="6" fill="#ffffff" opacity="0.35"/>
-<rect x="212" y="252" width="150" height="12" rx="6" fill="#ffffff" opacity="0.35"/>
-<path d="M118 344 L482 344 L512 390 L88 390 Z" fill="#ffffff"/>
-<rect x="252" y="358" width="96" height="10" rx="5" fill="$deep" opacity="0.45"/>
-"@
-        }
-        "furniture" {
-            @"
-<rect x="146" y="186" width="308" height="118" rx="26" fill="#ffffff"/>
-<rect x="122" y="272" width="356" height="90" rx="24" fill="#ffffff"/>
-<rect x="96" y="224" width="64" height="146" rx="30" fill="$deep"/>
-<rect x="440" y="224" width="64" height="146" rx="30" fill="$deep"/>
-<rect x="126" y="216" width="118" height="86" rx="16" fill="$deep" opacity="0.35"/>
-<rect x="356" y="216" width="118" height="86" rx="16" fill="$deep" opacity="0.35"/>
-<rect x="138" y="362" width="18" height="44" rx="6" fill="$deep"/>
-<rect x="444" y="362" width="18" height="44" rx="6" fill="$deep"/>
-<rect x="122" y="356" width="356" height="18" rx="9" fill="$deep"/>
-"@
-        }
-        "kitchen" {
-            @"
-<rect x="150" y="236" width="300" height="30" rx="15" fill="#ffffff"/>
-<path d="M172 266 H428 V344 A64 64 0 0 1 364 408 H236 A64 64 0 0 1 172 344 Z" fill="#ffffff"/>
-<rect x="140" y="300" width="46" height="24" rx="12" fill="$deep"/>
-<rect x="414" y="300" width="46" height="24" rx="12" fill="$deep"/>
-<circle cx="300" cy="216" r="22" fill="$deep"/>
-<rect x="286" y="196" width="28" height="24" fill="#ffffff"/>
-<rect x="232" y="300" width="136" height="14" rx="7" fill="$deep" opacity="0.4"/>
-<rect x="256" y="336" width="88" height="14" rx="7" fill="$deep" opacity="0.25"/>
-"@
-        }
-        "mens-fashion" {
-            @"
-<path d="M218 156 L266 130 A46 46 0 0 0 334 130 L382 156 L452 214 L404 276 L366 246 V418 A24 24 0 0 1 342 442 H258 A24 24 0 0 1 234 418 V246 L196 276 L148 214 Z" fill="#ffffff"/>
-<path d="M266 130 A46 46 0 0 0 334 130 L320 168 A26 26 0 0 1 280 168 Z" fill="$deep"/>
-<rect x="234" y="300" width="132" height="12" rx="6" fill="$deep" opacity="0.35"/>
-<rect x="248" y="332" width="104" height="12" rx="6" fill="$deep" opacity="0.25"/>
-"@
-        }
-        "womens-fashion" {
-            @"
-<path d="M244 140 H356 L374 186 L342 214 H258 L226 186 Z" fill="#ffffff"/>
-<path d="M258 214 H342 L412 430 A16 16 0 0 1 397 452 H203 A16 16 0 0 1 188 430 Z" fill="#ffffff"/>
-<path d="M272 240 H328 L392 424 H208 Z" fill="$deep" opacity="0.30"/>
-<rect x="244" y="196" width="112" height="16" rx="8" fill="$deep"/>
-<circle cx="300" cy="176" r="14" fill="$deep"/>
-"@
-        }
-        "footwear" {
-            @"
-<path d="M116 344 C130 272 176 250 234 244 L300 236 L362 286 C412 300 464 314 484 334 C494 344 494 362 482 368 H126 C116 364 112 354 116 344 Z" fill="#ffffff"/>
-<path d="M116 368 H484 V390 A14 14 0 0 1 470 404 H130 A14 14 0 0 1 116 390 Z" fill="$deep"/>
-<path d="M234 244 L262 300 M262 250 L288 306 M292 254 L316 310" stroke="$deep" stroke-width="10" stroke-linecap="round" opacity="0.5"/>
-<circle cx="410" cy="330" r="16" fill="$deep" opacity="0.45"/>
-"@
-        }
-        "beauty" {
-            @"
-<rect x="234" y="188" width="132" height="248" rx="34" fill="#ffffff"/>
-<rect x="274" y="146" width="52" height="52" fill="#ffffff"/>
-<rect x="262" y="112" width="76" height="44" rx="12" fill="$deep"/>
-<rect x="250" y="252" width="100" height="98" rx="12" fill="$deep" opacity="0.75"/>
-<rect x="266" y="276" width="68" height="12" rx="6" fill="#ffffff" opacity="0.85"/>
-<rect x="278" y="302" width="44" height="12" rx="6" fill="#ffffff" opacity="0.6"/>
-<circle cx="300" cy="392" r="20" fill="$deep" opacity="0.45"/>
-"@
-        }
-        "sports" {
-            @"
-<rect x="168" y="284" width="264" height="32" rx="16" fill="#ffffff"/>
-<rect x="126" y="222" width="58" height="156" rx="18" fill="$deep"/>
-<rect x="196" y="246" width="44" height="108" rx="14" fill="#ffffff"/>
-<rect x="416" y="222" width="58" height="156" rx="18" fill="$deep"/>
-<rect x="360" y="246" width="44" height="108" rx="14" fill="#ffffff"/>
-<rect x="240" y="292" width="120" height="16" rx="8" fill="$deep" opacity="0.55"/>
-"@
-        }
-        "toys" {
-            @"
-<rect x="176" y="316" width="120" height="106" rx="14" fill="#ffffff"/>
-<rect x="304" y="316" width="120" height="106" rx="14" fill="$deep"/>
-<rect x="240" y="204" width="120" height="106" rx="14" fill="$deep" opacity="0.75"/>
-<circle cx="236" cy="368" r="24" fill="$deep" opacity="0.45"/>
-<circle cx="364" cy="368" r="24" fill="#ffffff" opacity="0.75"/>
-<circle cx="300" cy="256" r="24" fill="#ffffff" opacity="0.85"/>
-<rect x="196" y="300" width="80" height="14" rx="7" fill="$deep" opacity="0.35"/>
-"@
-        }
-        "books" {
-            @"
-<rect x="176" y="132" width="248" height="330" rx="16" fill="#ffffff"/>
-<rect x="176" y="132" width="42" height="330" rx="16" fill="$deep"/>
-<rect x="244" y="196" width="140" height="16" rx="8" fill="$deep" opacity="0.65"/>
-<rect x="244" y="232" width="104" height="14" rx="7" fill="$deep" opacity="0.4"/>
-<circle cx="314" cy="330" r="46" fill="$deep" opacity="0.3"/>
-<rect x="244" y="404" width="140" height="14" rx="7" fill="$deep" opacity="0.4"/>
-"@
-        }
-        default {
-            @"
-<circle cx="300" cy="290" r="120" fill="#ffffff"/>
-"@
-        }
+function Slug([string]$v) {
+    $sb = New-Object System.Text.StringBuilder
+    $last = $false
+    foreach ($ch in $v.ToLowerInvariant().ToCharArray()) {
+        if ([char]::IsLetterOrDigit($ch)) { [void]$sb.Append($ch); $last = $false }
+        elseif (-not $last -and $sb.Length -gt 0) { [void]$sb.Append('-'); $last = $true }
     }
+    $s = $sb.ToString().Trim('-')
+    if ($s.Length -eq 0) { return "item" }
+    return $s
 }
 
-function New-Svg([string]$cat, [int]$base, [int]$variant, [string]$mode) {
-    $h = ($base + ($variant * 11)) % 360
-    $deep = "hsl($h,62%,42%)"
-    $art = Get-Art $cat $deep
-
-    if ($mode -eq "product") {
-        $h2 = ($h + 22) % 360
-        $c1 = "hsl($h,72%,86%)"
-        $c2 = "hsl($h2,66%,72%)"
-        $accent1 = "#ffffff"
-        $accent2 = "#ffffff"
-        $op1 = "0.14"
-        $op2 = "0.10"
-        $shadow = "#0f172a"
-        $shadowOp = "0.22"
-    } else {
-        $c1 = "hsl($h,60%,96%)"
-        $c2 = "hsl($h,55%,90%)"
-        $accent1 = "hsl($h,70%,80%)"
-        $accent2 = "hsl($h,65%,85%)"
-        $op1 = "0.55"
-        $op2 = "0.5"
-        $shadow = "hsl($h,50%,35%)"
-        $shadowOp = "0.18"
+function Get-Json([string]$url) {
+    for ($i = 0; $i -lt 4; $i++) {
+        try {
+            $raw = & $curl -s -H "User-Agent: $apiUA" -H "Accept: application/json" $url
+            if ([string]::IsNullOrWhiteSpace($raw)) { throw "empty" }
+            return $raw | ConvertFrom-Json
+        } catch { Start-Sleep -Milliseconds (700 * ($i + 1)) }
     }
-
-    $svg = @"
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600" role="img">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="$c1"/>
-      <stop offset="1" stop-color="$c2"/>
-    </linearGradient>
-    <filter id="sh" x="-40%" y="-40%" width="180%" height="180%">
-      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="$shadow" flood-opacity="$shadowOp"/>
-    </filter>
-  </defs>
-  <rect width="600" height="600" fill="url(#bg)"/>
-  <circle cx="472" cy="116" r="152" fill="$accent1" opacity="$op1"/>
-  <circle cx="104" cy="506" r="118" fill="$accent2" opacity="$op2"/>
-  <ellipse cx="300" cy="474" rx="176" ry="26" fill="$shadow" opacity="0.12"/>
-  <g filter="url(#sh)">
-$art
-  </g>
-</svg>
-"@
-    if ($mode -eq "product") {
-        $file = Join-Path $outProducts ("{0}-v{1}.svg" -f $cat, $variant)
-    } else {
-        $file = Join-Path $outCategories "$cat.svg"
-    }
-    $svg | Set-Content -Path $file -Encoding UTF8
+    return $null
 }
 
-foreach ($cat in $hues.Keys) {
-    $base = $hues[$cat]
-    for ($v = 0; $v -lt 10; $v++) {
-        New-Svg $cat $base $v "product"
-    }
-    New-Svg $cat $base 0 "category"
+$badTokens = @('logo','icon','diagram','map','flag','coat','symbol','sign','chart','graph',
+    'screenshot','seal','montage','collage','sprite','wiktionary','wikiquote','wikinews',
+    'wikiversity','wikibooks','wikisource','commons-logo','nuvola','oojs','ambox','question',
+    'edit-clear','padlock','protection','portal','category','disambiguation','wikimedia',
+    'wikidata','wikilove','sketch','drawing','crest','emblem','banner','wordmark','template',
+    'stub','arrow','bullet','barnstar','typography','font','graffiti','street_art','wallpaper',
+    'poster','painting','portrait','coin','banknote','stamp','historical','museum')
+
+function Score-File($title, $mime, $w, $h, [string[]]$keywords) {
+    if ($mime -notin @('image/jpeg','image/png','image/webp')) { return -1 }
+    if ($null -eq $w -or $null -eq $h -or $w -lt 400 -or $h -lt 400) { return -1 }
+    $name = $title.ToLowerInvariant()
+    foreach ($t in $badTokens) { if ($name.Contains($t)) { return -1 } }
+    $score = 0.0
+    foreach ($k in $keywords) { if ($k -and $name.Contains($k.ToLowerInvariant())) { $score += 120 } }
+    if ($mime -eq 'image/jpeg') { $score += 8 }
+    $score += [math]::Min(40, [math]::Log([double]($w * $h)) * 2)
+    $score -= [math]::Abs([math]::Log([double]$w / [double]$h)) * 6
+    return $score
 }
 
-# favicon
-$star = @"
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <rect width="64" height="64" rx="14" fill="#4f46e5"/>
-  <path d="M32 12 L38.5 25.5 L53 27.5 L42.5 38 L45 52.5 L32 45.5 L19 52.5 L21.5 38 L11 27.5 L25.5 25.5 Z" fill="#fbbf24"/>
-</svg>
-"@
-$star | Set-Content -Path (Join-Path $root "src\LegacyEcommerce\Content\favicon.svg") -Encoding UTF8
+function Get-ExactFile([string]$fileName) {
+    if ($fileName.StartsWith("File:")) { $fileName = $fileName.Substring(5) }
+    $t = [uri]::EscapeDataString("File:$fileName")
+    $url = "https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url%7Csize%7Cmime&iiurlwidth=1000&titles=$t"
+    $r = Get-Json $url
+    if ($r -and $r.query -and $r.query.pages) {
+        foreach ($p in $r.query.pages.PSObject.Properties.Value) {
+            $ii = $p.imageinfo
+            if ($ii) { return [pscustomobject]@{ title = $p.title; mime = $ii.mime; w = $ii.width; h = $ii.height; thumb = $ii.thumburl; orig = $ii.url; page = $ii.descriptionurl } }
+        }
+    }
+    return $null
+}
 
-Write-Host "Generated SVG artwork."
+function Get-Candidates([string]$article, [string[]]$keywords, [string]$commons) {
+    $found = @()
+    if ($article) {
+        $t = [uri]::EscapeDataString($article)
+        $url = "https://en.wikipedia.org/w/api.php?action=query&format=json&redirects=1&prop=imageinfo&iiprop=url%7Csize%7Cmime&iiurlwidth=1000&generator=images&gimlimit=100&titles=$t"
+        $r = Get-Json $url
+        if ($r -and $r.query -and $r.query.pages) {
+            foreach ($p in $r.query.pages.PSObject.Properties.Value) {
+                $ii = $p.imageinfo
+                if ($ii) { $found += [pscustomobject]@{ title = $p.title; mime = $ii.mime; w = $ii.width; h = $ii.height; thumb = $ii.thumburl; orig = $ii.url; page = $ii.descriptionurl } }
+            }
+        }
+    }
+    if ($commons) {
+        $q = [uri]::EscapeDataString($commons)
+        $url = "https://commons.wikimedia.org/w/api.php?action=query&format=json&list=search&srnamespace=6&srlimit=30&srsearch=$q"
+        $r = Get-Json $url
+        $titles = @()
+        if ($r -and $r.query -and $r.query.search) { $titles = @($r.query.search | ForEach-Object { $_.title }) }
+        if ($titles.Count -gt 0) {
+            $joined = [uri]::EscapeDataString(($titles -join '|'))
+            $url2 = "https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url%7Csize%7Cmime&iiurlwidth=1000&titles=$joined"
+            $r2 = Get-Json $url2
+            if ($r2 -and $r2.query -and $r2.query.pages) {
+                foreach ($p in $r2.query.pages.PSObject.Properties.Value) {
+                    $ii = $p.imageinfo
+                    if ($ii) { $found += [pscustomobject]@{ title = $p.title; mime = $ii.mime; w = $ii.width; h = $ii.height; thumb = $ii.thumburl; orig = $ii.url; page = $ii.descriptionurl } }
+                }
+            }
+        }
+    }
+    return $found
+}
+
+function Get-Image([string]$src, [string]$slug, [string]$outPath) {
+    Add-Type -AssemblyName System.Drawing
+    $tmp = Join-Path $env:TEMP ("nk_" + $slug + ".bin")
+    for ($attempt = 1; $attempt -le 6; $attempt++) {
+        & $curl -s -L -H "User-Agent: $dlUA" -H "Referer: https://commons.wikimedia.org/" -o $tmp $src
+        if (Test-Path -LiteralPath $tmp) {
+            $bytes = [System.IO.File]::ReadAllBytes($tmp)
+            if ($bytes.Length -gt 1024) {
+                $isImg = ($bytes[0] -eq 0xFF -and $bytes[1] -eq 0xD8) -or ($bytes[0] -eq 0x89 -and $bytes[1] -eq 0x50) -or ($bytes[0] -eq 0x47 -and $bytes[1] -eq 0x49)
+                if ($isImg) {
+                    try {
+                        $ms = New-Object System.IO.MemoryStream(,$bytes)
+                        $img = [System.Drawing.Image]::FromStream($ms)
+                        $scale = [math]::Min($Side / $img.Width, $Side / $img.Height)
+                        $tw = [int][math]::Max(1, [math]::Round($img.Width * $scale))
+                        $th = [int][math]::Max(1, [math]::Round($img.Height * $scale))
+                        $bmp = New-Object System.Drawing.Bitmap($Side, $Side)
+                        $g = [System.Drawing.Graphics]::FromImage($bmp)
+                        $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+                        $g.Clear([System.Drawing.Color]::White)
+                        $g.DrawImage($img, [int](($Side - $tw) / 2), [int](($Side - $th) / 2), $tw, $th)
+                        $g.Dispose()
+                        $bmp.Save($outPath, [System.Drawing.Imaging.ImageFormat]::Jpeg)
+                        $bmp.Dispose(); $img.Dispose(); $ms.Dispose()
+                        Remove-Item -LiteralPath $tmp -Force
+                        return $true
+                    } catch { }
+                }
+            }
+        }
+        Start-Sleep -Seconds (3 * $attempt)
+    }
+    return $false
+}
+
+$map = Get-Content (Join-Path $PSScriptRoot "image-map.json") -Raw | ConvertFrom-Json
+$overrides = @{}
+$ovPath = Join-Path $PSScriptRoot "overrides.json"
+if (Test-Path -LiteralPath $ovPath) {
+    $ov = Get-Content $ovPath -Raw | ConvertFrom-Json
+    foreach ($p in $ov.PSObject.Properties) { $overrides[$p.Name] = $p.Value }
+}
+$entries = New-Object System.Collections.ArrayList
+foreach ($m in $map) { [void]$entries.Add($m) }
+[void]$entries.Add([pscustomobject]@{ cat = "books"; type = "Fiction"; article = "Book"; keyword = "book"; commons = $null })
+$bookGenreTypes = @("Mystery","Science Fiction","Romance","Thriller","Fantasy","Self-Help","Business","Young Adult","Children's Picture Book","Cookbook","Programming")
+
+$chosen = @()
+$i = 0
+foreach ($e in $entries) {
+    $i++
+    $isBook = ($e.cat -eq "books")
+    $slug = if ($isBook) { "book" } else { Slug $e.type }
+    $keywords = if ($isBook) { @("book") } else { @($e.keyword -split '\s+') }
+    $article = if ($isBook) { "Book" } else { $e.article }
+    $commonsTerm = if ($isBook) { $null } else { $e.commons }
+
+    $best = $null; $bestScore = 0
+    if ($overrides.ContainsKey($e.type)) {
+        $best = Get-ExactFile $overrides[$e.type]
+        if (-not $best) { Write-Warning ("override not found: " + $overrides[$e.type]) }
+    }
+    if (-not $best) {
+        $cands = Get-Candidates $article $keywords $commonsTerm
+        foreach ($c in $cands) {
+            $s = Score-File $c.title $c.mime $c.w $c.h $keywords
+            if ($s -gt $bestScore) { $bestScore = $s; $best = $c }
+        }
+    }
+    $src = if ($best) { if ($best.thumb) { $best.thumb } else { $best.orig } } else { $null }
+    $chosen += [pscustomobject]@{ cat = $e.cat; type = $e.type; slug = $slug; article = $article; title = if ($best) { $best.title } else { $null }; src = $src; page = if ($best) { $best.page } else { $null } }
+    Write-Host ("[{0,3}] {1,-22} {2,-24} -> {3}" -f $i, $e.cat, $e.type, $(if ($best) { $best.title } else { "*** NONE ***" }))
+    Start-Sleep -Milliseconds 180
+}
+
+# Collapse the twelve book genres to the single shared book image.
+$bookRow = $chosen | Where-Object { $_.slug -eq 'book' } | Select-Object -First 1
+foreach ($g in $bookGenreTypes) {
+    $chosen += [pscustomobject]@{ cat = "books"; type = $g; slug = "book"; article = "Book"; title = $bookRow.title; src = $bookRow.src; page = $bookRow.page }
+}
+
+$chosen | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $PSScriptRoot "chosen.json") -Encoding UTF8
+Write-Host ("Resolved {0} type entries ({1} with no source)." -f $chosen.Count, (($chosen | Where-Object { -not $_.src }).Count))
+
+if ($ProposeOnly) { return }
+
+foreach ($c in $chosen) {
+    if (-not $c.src) { continue }
+    $out = Join-Path $outProducts ($c.slug + ".jpg")
+    if ((Test-Path -LiteralPath $out) -and -not $Force) { continue }
+    if (Get-Image $c.src $c.slug $out) { Write-Host ("  saved " + $c.slug + ".jpg") }
+    else { Write-Warning ("failed: " + $c.slug) }
+}
+
+foreach ($cat in $categoryTiles.Keys) {
+    $src = Join-Path $outProducts ($categoryTiles[$cat] + ".jpg")
+    if (Test-Path -LiteralPath $src) { Copy-Item -LiteralPath $src -Destination (Join-Path $outCategories ($cat + ".jpg")) -Force }
+}
+
+Write-Host "Photo pack ready. Category tiles refreshed from representative type images."

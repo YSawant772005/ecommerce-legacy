@@ -298,3 +298,18 @@
   .stat-grid { grid-template-columns: 1fr; }
   .kv-grid { grid-template-columns: 1fr; }
 }
+
+.field-hint { display: block; margin-top: 6px; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.img-preview {
+  margin-top: 10px;
+  width: 132px;
+  height: 132px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.img-preview img { width: 100%; height: 100%; object-fit: cover; }
